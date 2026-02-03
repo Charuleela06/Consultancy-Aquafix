@@ -1,0 +1,20 @@
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200');
+    background-size: cover;
+    background-position: center;
+    min-height: 80vh;
+}
+
+.services-overview .card {
+    transition: transform 0.3s ease;
+}
+
+.services-overview .card:hover {
+    transform: translateY(-10px);
+}
+
+.about-section img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
