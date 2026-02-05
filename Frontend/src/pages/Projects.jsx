@@ -42,6 +42,17 @@ export default function Projects() {
     }
   };
 
+  const updateBillAmount = async (requestId, billAmount) => {
+    try {
+      await API.put("/requests/bill", { requestId, billAmount });
+      alert("Bill amount updated successfully");
+      fetchRequests();
+      setShowModal(false);
+    } catch (err) {
+      alert("Failed to update bill amount");
+    }
+  };
+
   const assignStaff = async (requestId, staffId) => {
     try {
       await API.put("/requests/assign", { requestId, staffId });
@@ -177,6 +188,26 @@ export default function Projects() {
                         </select>
                       </div>
                     )}
+                  </div>
+                  <div className="col-md-6">
+                    <p className="mb-1 text-muted small text-uppercase fw-bold">Bill Amount (₹)</p>
+                    <div className="input-group">
+                      <input 
+                        type="number" 
+                        className="form-control" 
+                        defaultValue={selectedRequest.billAmount}
+                        onBlur={(e) => updateBillAmount(selectedRequest._id, e.target.value)}
+                        placeholder="Enter amount"
+                      />
+                      <span className="input-group-text">₹</span>
+                    </div>
+                    <small className="text-muted">Changes saved on blur</small>
+                  </div>
+                  <div className="col-md-6">
+                    <p className="mb-1 text-muted small text-uppercase fw-bold">Payment Status</p>
+                    <div className={`badge ${selectedRequest.paymentStatus === 'Paid' ? 'bg-success' : 'bg-warning'} fs-6`}>
+                      {selectedRequest.paymentStatus}
+                    </div>
                   </div>
                 </div>
               </div>
