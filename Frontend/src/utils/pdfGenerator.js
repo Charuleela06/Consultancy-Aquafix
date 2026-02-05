@@ -113,6 +113,89 @@ export const generateBillPDF = (bill) => {
   doc.save(`Invoice_${bill.invoiceNo || 'Draft'}.pdf`);
 };
 
+export const generateServiceBillPDF = (request) => {
+  if (!request || typeof request !== 'object') {
+    console.error("Invalid request data for PDF generation", request);
+    return;
+  }
+
+  const doc = new jsPDF();
+  
+  // Header
+  doc.setFontSize(22);
+  doc.setTextColor(200, 0, 0);
+  doc.setFont("helvetica", "bold");
+  doc.text("SRM AGENCY", 105, 20, { align: "center" });
+  
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "normal");
+  doc.text("(Electrical & Plumbing Works & Public Health)", 105, 26, { align: "center" });
+  doc.text("No.5/302, Koonampatti, Pallagoundenpalayam (Post),", 105, 31, { align: "center" });
+  doc.text("Vijayamangalam (Via), Tirupur Dt - 638 056.", 105, 36, { align: "center" });
+
+  // GSTIN and Contact
+  doc.setFontSize(10);
+  doc.text(`GSTIN: 33CLPPB8841Q1ZF`, 15, 15);
+  doc.text(`Cell: 97886 54170`, 195, 15, { align: "right" });
+
+  // Invoice Title
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.5);
+  doc.line(15, 42, 195, 42);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("SERVICE INVOICE", 105, 48, { align: "center" });
+  doc.line(15, 52, 195, 52);
+
+  // Bill To and Details
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Bill To:", 15, 60);
+  doc.setFont("helvetica", "bold");
+  doc.text(request.name || "", 30, 60);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Email: ${request.email || ""}`, 30, 65);
+  doc.text(`Phone: ${request.phoneNumber || ""}`, 30, 70);
+
+  const billDate = new Date().toLocaleDateString();
+  doc.text(`Date: ${billDate}`, 195, 60, { align: "right" });
+  doc.text(`Request ID: ${request._id.toString().slice(-6).toUpperCase()}`, 195, 65, { align: "right" });
+
+  // Service Details
+  doc.setFont("helvetica", "bold");
+  doc.text("Service Details", 15, 85);
+  doc.line(15, 87, 45, 87);
+  
+  doc.setFont("helvetica", "normal");
+  doc.text(`Service Type: ${request.serviceType.toUpperCase()}`, 15, 95);
+  doc.text(`Message/Description:`, 15, 102);
+  doc.text(request.message || "No description provided", 20, 108, { maxWidth: 170 });
+
+  // Totals
+  const finalY = 130;
+  doc.setDrawColor(0);
+  doc.line(15, finalY, 195, finalY);
+  
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Bill Amount", 140, finalY + 10);
+  doc.text(`Rs. ${(request.billAmount || 0).toFixed(2)}`, 195, finalY + 10, { align: "right" });
+
+  // Status
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "italic");
+  doc.text(`Payment Status: ${request.paymentStatus || 'Pending'}`, 15, finalY + 10);
+
+  // Signatory
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("For SRM AGENCY", 195, finalY + 40, { align: "right" });
+  doc.text("(Authorised Signatory)", 195, finalY + 60, { align: "right" });
+
+  doc.save(`Service_Invoice_${request._id.toString().slice(-6)}.pdf`);
+};
+
 // Helper function for number to words
 function numberToWords(num) {
   const a = ['', 'one ', 'two ', 'three ', 'four ', 'five ', 'six ', 'seven ', 'eight ', 'nine ', 'ten ', 'eleven ', 'twelve ', 'thirteen ', 'fourteen ', 'fifteen ', 'sixteen ', 'seventeen ', 'eighteen ', 'nineteen '];

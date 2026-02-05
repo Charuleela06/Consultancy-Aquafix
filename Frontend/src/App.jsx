@@ -7,6 +7,7 @@ import StaffManagement from "./pages/StaffManagement";
 import Projects from "./pages/Projects";
 import ServiceRequest from "./pages/ServiceRequest";
 import GovernmentProjects from "./pages/GovernmentProjects";
+import Transactions from "./pages/Transactions";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,6 +26,7 @@ function App() {
             <Route path="/staff-management" element={<ProtectedRoute requiredRole="admin"><StaffManagement /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute requiredRole="admin"><Projects /></ProtectedRoute>} />
             <Route path="/request" element={<ProtectedRoute requiredRole="user"><ServiceRequest /></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute requiredRole="user"><Transactions /></ProtectedRoute>} />
             <Route path="/government" element={<ProtectedRoute requiredRole="admin"><GovernmentProjects /></ProtectedRoute>} />
           </Routes>
         </main>

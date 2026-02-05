@@ -55,3 +55,17 @@ exports.assignStaff = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.updateBillAmount = async (req, res) => {
+  try {
+    const { requestId, billAmount } = req.body;
+    const request = await ServiceRequest.findByIdAndUpdate(
+      requestId,
+      { billAmount },
+      { new: true }
+    ).populate("assignedStaff", "name");
+    res.json(request);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

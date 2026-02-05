@@ -49,6 +49,9 @@ export default function Navbar() {
                     <li className="nav-item">
                       <NavLink className="nav-link mx-1" to="/request" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Service Request</NavLink>
                     </li>
+                    <li className="nav-item">
+                      <NavLink className="nav-link mx-1" to="/transactions" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Transactions</NavLink>
+                    </li>
                   </>
                 )}
                 <li className="nav-item ms-lg-3">
