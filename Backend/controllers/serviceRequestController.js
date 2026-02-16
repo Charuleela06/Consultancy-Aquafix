@@ -30,6 +30,9 @@ exports.getRequests = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden" });
+    }
     const { requestId, status } = req.body;
     const request = await ServiceRequest.findByIdAndUpdate(
       requestId,
@@ -44,6 +47,9 @@ exports.updateStatus = async (req, res) => {
 
 exports.assignStaff = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden" });
+    }
     const { requestId, staffId } = req.body;
     const request = await ServiceRequest.findByIdAndUpdate(
       requestId,
@@ -58,12 +64,32 @@ exports.assignStaff = async (req, res) => {
 
 exports.updateBillAmount = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden" });
+    }
     const { requestId, billAmount } = req.body;
     const request = await ServiceRequest.findByIdAndUpdate(
       requestId,
-      { billAmount },
+      { billAmount: Number(billAmount) || 0 },
       { new: true }
     ).populate("assignedStaff", "name");
+    res.json(request);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const { requestId, paymentStatus } = req.body;
+    const request = await ServiceRequest.findByIdAndUpdate(
+      requestId,
+      { paymentStatus },
+      { new: true }
+    ).populate("assignedStaff", "name phoneNumber");
     res.json(request);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -13,6 +13,7 @@ app.use(cors());
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/projects", require("./routes/projectRoutes"));
 app.use("/api/requests", require("./routes/serviceRequestRoutes"));
+app.use("/api/request-billing", require("./routes/serviceRequestBillingRoutes"));
 app.use("/api/government", require("./routes/governmentRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));
 app.use("/api/stats", require("./routes/statsRoutes"));
