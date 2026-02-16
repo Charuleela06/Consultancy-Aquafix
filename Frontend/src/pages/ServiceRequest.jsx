@@ -8,17 +8,34 @@ export default function ServiceRequest() {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchRequests();
   }, []);
 
+  useEffect(() => {
+    const onVisibility = () => {
+      if (!document.hidden) {
+        fetchRequests();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
   const fetchRequests = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await API.get("/requests");
       setRequests(res.data);
     } catch (err) {
-      console.log("Error fetching requests", err);
+      console.error("Error fetching requests", err);
+      setError(err.response?.data?.message || "Failed to load requests. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,15 +44,40 @@ export default function ServiceRequest() {
     setShowModal(true);
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedRequest(null);
+    fetchRequests();
+  };
+
+  const downloadLatestApprovedBill = async (requestId) => {
+    try {
+      const res = await API.get(`/request-billing/request/${requestId}`);
+      const list = res.data || [];
+      const approved = list.filter((b) => b.status === "Approved");
+      const latest = approved.length > 0 ? approved[approved.length - 1] : null;
+      if (!latest) {
+        alert("No approved bill found for this request");
+        return;
+      }
+      generateServiceBillPDF(latest);
+    } catch (err) {
+      alert("Failed to download bill");
+    }
+  };
+
   const submit = async () => {
-    if (!form.name || !form.email || !form.phoneNumber || !form.serviceType) return alert("Please fill required fields");
+    if (!form.name || !form.email || !form.phoneNumber || !form.serviceType) return alert("Please fill all required fields");
     try {
       await API.post("/requests", form);
       alert("Request submitted successfully!");
       setForm({ name: "", email: "", phoneNumber: "", serviceType: "", message: "" });
+      setError(null);
       fetchRequests();
     } catch (err) {
-      alert("Submission failed");
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || "Submission failed";
+      alert("Submission failed: " + errorMsg);
+      console.error("Error submitting request", err);
     }
   };
 
@@ -43,6 +85,13 @@ export default function ServiceRequest() {
     <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-md-10">
+          {error && (
+            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+              <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+            </div>
+          )}
           <div className="card shadow-lg p-5 mb-5 border-0">
             <h2 className="text-center mb-4 fw-bold">Service Request Form</h2>
             <p className="text-center text-muted mb-5">Fill out the form below and we'll get back to you as soon as possible.</p>
@@ -108,6 +157,13 @@ export default function ServiceRequest() {
 
           <div className="card shadow-sm p-4 border-0">
             <h3 className="mb-4 fw-bold">Your Requests</h3>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
             <div className="table-responsive">
               <table className="table table-hover">
                 <thead className="table-light">
@@ -145,7 +201,7 @@ export default function ServiceRequest() {
                           {r.billAmount > 0 && (
                             <button 
                               className="btn btn-sm btn-outline-dark"
-                              onClick={() => generateServiceBillPDF(r)}
+                              onClick={() => downloadLatestApprovedBill(r._id)}
                               title="Download Bill"
                             >
                               <i className="bi bi-download"></i>
@@ -163,6 +219,7 @@ export default function ServiceRequest() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -224,9 +281,9 @@ export default function ServiceRequest() {
                 </div>
               </div>
               <div className="modal-footer border-0">
-                <button type="button" className="btn btn-secondary px-4" onClick={() => setShowModal(false)}>Close</button>
+                <button type="button" className="btn btn-secondary px-4" onClick={closeModal}>Close</button>
                 {selectedRequest.billAmount > 0 && (
-                  <button type="button" className="btn btn-primary px-4" onClick={() => generateServiceBillPDF(selectedRequest)}>
+                  <button type="button" className="btn btn-primary px-4" onClick={() => downloadLatestApprovedBill(selectedRequest._id)}>
                     Download Bill
                   </button>
                 )}

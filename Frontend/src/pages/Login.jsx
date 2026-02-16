@@ -12,15 +12,20 @@ export default function Login() {
     try {
       const res = await API.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.user.role);
+      
+      // Extract and store role from user object
+      const userRoleRaw = res.data.user?.role || "user";
+      const userRole = String(userRoleRaw).toLowerCase();
+      localStorage.setItem("role", userRole);
+      
       alert("Login successful");
-      if (res.data.user.role === "admin") {
+      if (userRole === "admin") {
         navigate("/dashboard");
       } else {
         navigate("/home");
       }
     } catch (err) {
-      alert("Login failed");
+      alert("Login failed: " + (err.response?.data?.message || "Invalid credentials"));
     }
   };
 

@@ -21,12 +21,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/home" element={<ProtectedRoute requiredRole="user"><Home /></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute requiredRole={["user", "staff"]}><Home /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute requiredRole="admin"><Dashboard /></ProtectedRoute>} />
             <Route path="/staff-management" element={<ProtectedRoute requiredRole="admin"><StaffManagement /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute requiredRole="admin"><Projects /></ProtectedRoute>} />
-            <Route path="/request" element={<ProtectedRoute requiredRole="user"><ServiceRequest /></ProtectedRoute>} />
-            <Route path="/transactions" element={<ProtectedRoute requiredRole="user"><Transactions /></ProtectedRoute>} />
+            <Route path="/request" element={<ProtectedRoute requiredRole={["user", "staff"]}><ServiceRequest /></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute requiredRole={["user", "staff"]}><Transactions /></ProtectedRoute>} />
             <Route path="/government" element={<ProtectedRoute requiredRole="admin"><GovernmentProjects /></ProtectedRoute>} />
           </Routes>
         </main>
