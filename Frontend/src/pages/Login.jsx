@@ -14,8 +14,7 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       
       // Extract and store role from user object
-      const userRoleRaw = res.data.user?.role || "user";
-      const userRole = String(userRoleRaw).toLowerCase();
+      const userRole = res.data.user?.role || "user";
       localStorage.setItem("role", userRole);
       
       alert("Login successful");

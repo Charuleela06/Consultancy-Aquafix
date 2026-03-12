@@ -6,7 +6,7 @@ const Home = () => {
     <div className="home-container">
       <header className="hero-section text-center text-white d-flex align-items-center justify-content-center">
         <div className="container">
-          <h1 className="display-3 fw-bold mb-4">Expert Consultancy Services</h1>
+          <h1 className="display-3 fw-bold mb-4">Expert Services</h1>
           <p className="lead mb-5">Transforming your business with innovative solutions and strategic insights.</p>
           <a href="/request" className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">Request a Service</a>
         </div>

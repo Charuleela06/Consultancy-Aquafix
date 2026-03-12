@@ -15,16 +15,6 @@ export default function ServiceRequest() {
     fetchRequests();
   }, []);
 
-  useEffect(() => {
-    const onVisibility = () => {
-      if (!document.hidden) {
-        fetchRequests();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
-
   const fetchRequests = async () => {
     try {
       setLoading(true);
@@ -42,28 +32,6 @@ export default function ServiceRequest() {
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
     setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedRequest(null);
-    fetchRequests();
-  };
-
-  const downloadLatestApprovedBill = async (requestId) => {
-    try {
-      const res = await API.get(`/request-billing/request/${requestId}`);
-      const list = res.data || [];
-      const approved = list.filter((b) => b.status === "Approved");
-      const latest = approved.length > 0 ? approved[approved.length - 1] : null;
-      if (!latest) {
-        alert("No approved bill found for this request");
-        return;
-      }
-      generateServiceBillPDF(latest);
-    } catch (err) {
-      alert("Failed to download bill");
-    }
   };
 
   const submit = async () => {
@@ -201,7 +169,7 @@ export default function ServiceRequest() {
                           {r.billAmount > 0 && (
                             <button 
                               className="btn btn-sm btn-outline-dark"
-                              onClick={() => downloadLatestApprovedBill(r._id)}
+                              onClick={() => generateServiceBillPDF(r)}
                               title="Download Bill"
                             >
                               <i className="bi bi-download"></i>
@@ -281,9 +249,9 @@ export default function ServiceRequest() {
                 </div>
               </div>
               <div className="modal-footer border-0">
-                <button type="button" className="btn btn-secondary px-4" onClick={closeModal}>Close</button>
+                <button type="button" className="btn btn-secondary px-4" onClick={() => setShowModal(false)}>Close</button>
                 {selectedRequest.billAmount > 0 && (
-                  <button type="button" className="btn btn-primary px-4" onClick={() => downloadLatestApprovedBill(selectedRequest._id)}>
+                  <button type="button" className="btn btn-primary px-4" onClick={() => generateServiceBillPDF(selectedRequest)}>
                     Download Bill
                   </button>
                 )}

@@ -17,7 +17,7 @@ export default function Navbar() {
       <div className="container-fluid">
         <Link className="navbar-brand fw-bold d-flex align-items-center gap-2" to={role === "admin" ? "/dashboard" : "/home"}>
           <i className="bi bi-shield-check fs-4"></i>
-          <span>Consultancy</span>
+          <span>Aquafix</span>
         </Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span className="navbar-toggler-icon"></span>
