@@ -1,11 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+const { webhook } = require("./controllers/stripeController");
 
 const app = express();
 
 // Middleware
+app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), webhook);
 app.use(express.json());
 app.use(cors());
 
@@ -17,6 +21,7 @@ app.use("/api/request-billing", require("./routes/serviceRequestBillingRoutes"))
 app.use("/api/government", require("./routes/governmentRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));
 app.use("/api/stats", require("./routes/statsRoutes"));
+app.use("/api/stripe", require("./routes/stripeRoutes"));
 
 // DB Connection
 mongoose.connect(process.env.MONGO_URI)

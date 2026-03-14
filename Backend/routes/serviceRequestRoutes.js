@@ -1,10 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
-const { createRequest, getRequests, assignStaff, updateStatus, updateBillAmount, updatePaymentStatus } = require("../controllers/serviceRequestController");
+const multer = require("multer");
+const { createRequest, getRequests, assignStaff, updateStatus, updateBillAmount, updatePaymentStatus, getRequestImage } = require("../controllers/serviceRequestController");
 
-router.post("/", auth, createRequest);
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.post("/", auth, upload.single("image"), createRequest);
 router.get("/", auth, getRequests);
+router.get("/:id/image", auth, getRequestImage);
 router.put("/assign", auth, assignStaff);
 router.put("/status", auth, updateStatus);
 router.put("/bill", auth, updateBillAmount);

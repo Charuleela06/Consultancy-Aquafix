@@ -1,13 +1,45 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { generateServiceBillPDF } from "../utils/pdfGenerator";
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
+  const [paymentNotice, setPaymentNotice] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTransactions();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const payment = params.get("payment");
+    const requestId = params.get("requestId");
+    if (!payment) return;
+
+    if (payment === "success") {
+      setPaymentNotice({ type: "success", text: "Payment completed. Updating status...", requestId });
+    } else if (payment === "cancel") {
+      setPaymentNotice({ type: "warning", text: "Payment cancelled.", requestId });
+    }
+
+    fetchTransactions();
+
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      await fetchTransactions();
+      if (attempts >= 10) {
+        clearInterval(interval);
+      }
+    }, 1500);
+
+    navigate("/transactions", { replace: true });
+
+    return () => clearInterval(interval);
+  }, [location.search]);
 
   const fetchTransactions = async () => {
     try {
@@ -20,8 +52,29 @@ export default function Transactions() {
     }
   };
 
+  const payNow = async (requestId) => {
+    try {
+      const res = await API.post("/stripe/checkout-session", { requestId });
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+      alert("Failed to start payment");
+    } catch (err) {
+      alert("Failed to start payment: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   return (
     <div className="container py-5">
+      {paymentNotice && (
+        <div className={`alert alert-${paymentNotice.type} d-flex justify-content-between align-items-center`} role="alert">
+          <div>{paymentNotice.text}</div>
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setPaymentNotice(null)}>
+            Close
+          </button>
+        </div>
+      )}
       <div className="row mb-4">
         <div className="col">
           <h2 className="fw-bold">Transaction History</h2>
@@ -61,12 +114,22 @@ export default function Transactions() {
                     </td>
                     <td>{new Date(t.createdAt).toLocaleDateString()}</td>
                     <td className="text-end pe-4">
-                      <button 
-                        className="btn btn-sm btn-dark"
-                        onClick={() => generateServiceBillPDF(t)}
-                      >
-                        <i className="bi bi-download me-1"></i> Bill
-                      </button>
+                      <div className="btn-group">
+                        {t.paymentStatus !== 'Paid' && (
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => payNow(t._id)}
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                        <button 
+                          className="btn btn-sm btn-dark"
+                          onClick={() => generateServiceBillPDF(t)}
+                        >
+                          <i className="bi bi-download me-1"></i> Bill
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

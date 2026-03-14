@@ -4,12 +4,14 @@ import { generateServiceBillPDF } from "../utils/pdfGenerator";
 import "../styles/ServiceRequest.css";
 
 export default function ServiceRequest() {
-  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", serviceType: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", address: "", serviceType: "", message: "" });
+  const [imageFile, setImageFile] = useState(null);
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRequestImageUrl, setSelectedRequestImageUrl] = useState(null);
 
   useEffect(() => {
     fetchRequests();
@@ -34,12 +36,55 @@ export default function ServiceRequest() {
     setShowModal(true);
   };
 
+  useEffect(() => {
+    let active = true;
+
+    const fetchImage = async () => {
+      if (!showModal || !selectedRequest?._id) return;
+
+      try {
+        const res = await API.get(`/requests/${selectedRequest._id}/image`, {
+          responseType: "blob"
+        });
+        const url = URL.createObjectURL(res.data);
+        if (active) setSelectedRequestImageUrl(url);
+      } catch (e) {
+        if (active) setSelectedRequestImageUrl(null);
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      active = false;
+      if (selectedRequestImageUrl) {
+        URL.revokeObjectURL(selectedRequestImageUrl);
+      }
+    };
+  }, [showModal, selectedRequest]);
+
   const submit = async () => {
-    if (!form.name || !form.email || !form.phoneNumber || !form.serviceType) return alert("Please fill all required fields");
+    if (!form.name || !form.email || !form.phoneNumber || !form.address || !form.serviceType) return alert("Please fill all required fields");
     try {
-      await API.post("/requests", form);
+      const data = new FormData();
+      data.append("name", form.name);
+      data.append("email", form.email);
+      data.append("phoneNumber", form.phoneNumber);
+      data.append("address", form.address);
+      data.append("serviceType", form.serviceType);
+      data.append("message", form.message);
+      if (imageFile) {
+        data.append("image", imageFile);
+      }
+
+      await API.post("/requests", data, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
       alert("Request submitted successfully!");
-      setForm({ name: "", email: "", phoneNumber: "", serviceType: "", message: "" });
+      setForm({ name: "", email: "", phoneNumber: "", address: "", serviceType: "", message: "" });
+      setImageFile(null);
       setError(null);
       fetchRequests();
     } catch (err) {
@@ -93,6 +138,15 @@ export default function ServiceRequest() {
                   onChange={e => setForm({...form, phoneNumber:e.target.value})}
                 />
               </div>
+              <div className="col-md-6">
+                <label className="form-label fw-bold">Address</label>
+                <input 
+                  className="form-control" 
+                  placeholder="Address" 
+                  value={form.address}
+                  onChange={e => setForm({...form, address:e.target.value})}
+                />
+              </div>
               <div className="col-md-12">
                 <label className="form-label fw-bold">Service Type</label>
                 <select 
@@ -115,6 +169,15 @@ export default function ServiceRequest() {
                   placeholder="Tell us more about your requirements..." 
                   value={form.message}
                   onChange={e => setForm({...form, message:e.target.value})}
+                />
+              </div>
+              <div className="col-md-12">
+                <label className="form-label fw-bold">Upload Image (optional)</label>
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                 />
               </div>
               <div className="col-md-12 text-center mt-4">
@@ -202,6 +265,16 @@ export default function ServiceRequest() {
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body p-4">
+                {selectedRequestImageUrl && (
+                  <div className="mb-3">
+                    <label className="text-muted small d-block">Uploaded Image</label>
+                    <img
+                      src={selectedRequestImageUrl}
+                      alt="Request"
+                      className="img-fluid rounded border"
+                    />
+                  </div>
+                )}
                 <div className="mb-3">
                   <label className="text-muted small d-block">Request Name</label>
                   <span className="fw-bold fs-5 text-capitalize">{selectedRequest.serviceType} Request</span>
@@ -215,6 +288,10 @@ export default function ServiceRequest() {
                     <label className="text-muted small d-block">Date Submitted</label>
                     <span className="fw-bold">{new Date(selectedRequest.createdAt).toLocaleDateString()}</span>
                   </div>
+                </div>
+                <div className="mb-3">
+                  <label className="text-muted small d-block">Address</label>
+                  <p className="bg-light p-3 rounded mb-0">{selectedRequest.address || "N/A"}</p>
                 </div>
                 <div className="mb-3">
                   <label className="text-muted small d-block">Message/Requirements</label>

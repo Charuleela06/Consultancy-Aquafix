@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
     res.status(201).json({ message: "User Registered Successfully" });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -30,6 +30,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "Server misconfigured: JWT_SECRET is not set" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -46,7 +50,7 @@ exports.login = async (req, res) => {
     res.json({ token, user });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -55,7 +59,7 @@ exports.getStaff = async (req, res) => {
     const staff = await User.find({ role: "staff" }).select("name email phoneNumber _id");
     res.json(staff);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -75,6 +79,6 @@ exports.getAvailableStaff = async (req, res) => {
     
     res.json(availableStaff);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
