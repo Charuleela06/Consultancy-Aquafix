@@ -1,4 +1,5 @@
 const ServiceRequest = require("../models/ServiceRequest");
+const User = require("../models/User");
 
 exports.createRequest = async (req, res) => {
   try {
@@ -62,6 +63,26 @@ exports.assignStaff = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
     const { requestId, staffId } = req.body;
+
+    if (!requestId || !staffId) {
+      return res.status(400).json({ message: "requestId and staffId are required" });
+    }
+
+    const staff = await User.findById(staffId).select("role");
+    if (!staff || staff.role !== "staff") {
+      return res.status(400).json({ message: "Invalid staff" });
+    }
+
+    const busyRequest = await ServiceRequest.findOne({
+      assignedStaff: staffId,
+      status: { $ne: "Completed" },
+      _id: { $ne: requestId }
+    }).select("_id status");
+
+    if (busyRequest) {
+      return res.status(400).json({ message: "Staff not available" });
+    }
+
     const request = await ServiceRequest.findByIdAndUpdate(
       requestId,
       { assignedStaff: staffId },

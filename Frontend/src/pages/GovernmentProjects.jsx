@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { generateBillPDF } from "../utils/pdfGenerator";
 import "../styles/GovernmentProjects.css";
 
 export default function GovernmentProjects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [showBilling, setShowBilling] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -13,10 +15,12 @@ export default function GovernmentProjects() {
   
   const [projectForm, setProjectForm] = useState({ 
     title: "", 
-    department: "", 
-    location: "", 
+    panchayatName: "",
+    locationVillage: "",
     workType: "",
-    budget: "" 
+    budget: "",
+    startDate: "",
+    endDate: ""
   });
 
   const [billForm, setBillForm] = useState({
@@ -56,12 +60,12 @@ export default function GovernmentProjects() {
   };
 
   const addProject = async () => {
-    if (!projectForm.title || !projectForm.department) return alert("Title and Department are required");
+    if (!projectForm.title || !projectForm.panchayatName) return alert("Project Title and Panchayat Name are required");
     try {
       await API.post("/government", projectForm);
       alert("Project Added");
       fetchProjects();
-      setProjectForm({ title: "", department: "", location: "", workType: "", budget: "" });
+      setProjectForm({ title: "", panchayatName: "", locationVillage: "", workType: "", budget: "", startDate: "", endDate: "" });
     } catch (err) {
       alert("Failed to add project");
     }
@@ -316,16 +320,22 @@ export default function GovernmentProjects() {
             <input className="form-control" placeholder="Project Title" value={projectForm.title} onChange={e => setProjectForm({...projectForm, title: e.target.value})} />
           </div>
           <div className="col-md-4">
-            <input className="form-control" placeholder="Department" value={projectForm.department} onChange={e => setProjectForm({...projectForm, department: e.target.value})} />
+            <input className="form-control" placeholder="Panchayat Name" value={projectForm.panchayatName} onChange={e => setProjectForm({...projectForm, panchayatName: e.target.value})} />
           </div>
           <div className="col-md-4">
-            <input className="form-control" placeholder="Location" value={projectForm.location} onChange={e => setProjectForm({...projectForm, location: e.target.value})} />
+            <input className="form-control" placeholder="Location / Village" value={projectForm.locationVillage} onChange={e => setProjectForm({...projectForm, locationVillage: e.target.value})} />
           </div>
           <div className="col-md-4">
             <input className="form-control" placeholder="Work Type" value={projectForm.workType} onChange={e => setProjectForm({...projectForm, workType: e.target.value})} />
           </div>
           <div className="col-md-4">
             <input className="form-control" type="number" placeholder="Budget" value={projectForm.budget} onChange={e => setProjectForm({...projectForm, budget: e.target.value})} />
+          </div>
+          <div className="col-md-4">
+            <input className="form-control" type="date" placeholder="Start Date" value={projectForm.startDate} onChange={e => setProjectForm({...projectForm, startDate: e.target.value})} />
+          </div>
+          <div className="col-md-4">
+            <input className="form-control" type="date" placeholder="End Date" value={projectForm.endDate} onChange={e => setProjectForm({...projectForm, endDate: e.target.value})} />
           </div>
           <div className="col-md-4">
             <button className="btn btn-primary w-100 fw-bold" onClick={addProject}>Add Project</button>
@@ -337,7 +347,15 @@ export default function GovernmentProjects() {
         {projects.length > 0 ? (
           projects.map(p => (
             <div key={p._id} className="col-md-6 mb-4">
-              <div className="card h-100 border-0 shadow-sm overflow-hidden">
+              <div
+                className="card h-100 border-0 shadow-sm overflow-hidden"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/government/${p._id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") navigate(`/government/${p._id}`);
+                }}
+              >
                 <div className="bg-success py-2"></div>
                 <div className="card-body p-4">
                   <div className="d-flex justify-content-between mb-3">
@@ -345,12 +363,20 @@ export default function GovernmentProjects() {
                     <span className="badge bg-success-subtle text-success">{p.status}</span>
                   </div>
                   <div className="mb-3">
-                    <div className="text-muted small"><i className="bi bi-building me-2"></i>{p.department}</div>
-                    <div className="text-muted small"><i className="bi bi-geo-alt me-2"></i>{p.location}</div>
+                    <div className="text-muted small"><i className="bi bi-building me-2"></i>{p.panchayatName || p.department || "-"}</div>
+                    <div className="text-muted small"><i className="bi bi-geo-alt me-2"></i>{p.locationVillage || p.location || "-"}</div>
+                    {p.workType && (
+                      <div className="text-muted small"><i className="bi bi-tools me-2"></i>{p.workType}</div>
+                    )}
+                    <div className="text-muted small"><i className="bi bi-calendar3 me-2"></i>
+                      {(p.startDate ? new Date(p.startDate).toLocaleDateString() : "-")}
+                      {" "}to{" "}
+                      {(p.endDate ? new Date(p.endDate).toLocaleDateString() : "-")}
+                    </div>
                   </div>
                   <div className="d-flex justify-content-between align-items-center mt-4">
                     <div className="d-flex align-items-center gap-3">
-                      <div className="fw-bold text-primary">Budget: ₹{p.totalBilledAmount?.toLocaleString() || 0}</div>
+                      <div className="fw-bold text-primary">Budget: ₹{(p.budget ?? 0).toLocaleString()}</div>
                       {p.lastBillId && (
                         <button 
                           className="btn btn-sm btn-link p-0 text-danger fs-4" 
@@ -364,7 +390,10 @@ export default function GovernmentProjects() {
                         </button>
                       )}
                     </div>
-                    <button className="btn btn-outline-success btn-sm px-4 rounded-pill" onClick={() => handleViewBilling(p)}>Manage Billings</button>
+                    <button className="btn btn-outline-success btn-sm px-4 rounded-pill" onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewBilling(p);
+                    }}>Manage Billings</button>
                   </div>
                 </div>
               </div>

@@ -7,8 +7,11 @@ import StaffManagement from "./pages/StaffManagement";
 import Projects from "./pages/Projects";
 import ServiceRequest from "./pages/ServiceRequest";
 import GovernmentProjects from "./pages/GovernmentProjects";
+import GovernmentProjectDetails from "./pages/GovernmentProjectDetails";
+import RevenueAnalytics from "./pages/RevenueAnalytics";
 import Transactions from "./pages/Transactions";
 import PaymentComplete from "./pages/PaymentComplete";
+import MyRequests from "./pages/MyRequests";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,9 +30,12 @@ function App() {
             <Route path="/staff-management" element={<ProtectedRoute requiredRole="admin"><StaffManagement /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute requiredRole="admin"><Projects /></ProtectedRoute>} />
             <Route path="/request" element={<ProtectedRoute requiredRole={["user", "staff"]}><ServiceRequest /></ProtectedRoute>} />
+            <Route path="/my-requests" element={<ProtectedRoute requiredRole={["user", "staff"]}><MyRequests /></ProtectedRoute>} />
             <Route path="/transactions" element={<ProtectedRoute requiredRole={["user", "staff"]}><Transactions /></ProtectedRoute>} />
             <Route path="/payment-complete" element={<ProtectedRoute requiredRole={["user", "staff"]}><PaymentComplete /></ProtectedRoute>} />
             <Route path="/government" element={<ProtectedRoute requiredRole="admin"><GovernmentProjects /></ProtectedRoute>} />
+            <Route path="/government/:id" element={<ProtectedRoute requiredRole="admin"><GovernmentProjectDetails /></ProtectedRoute>} />
+            <Route path="/revenue-analytics" element={<ProtectedRoute requiredRole="admin"><RevenueAnalytics /></ProtectedRoute>} />
           </Routes>
         </main>
         <Footer />

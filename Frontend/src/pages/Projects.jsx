@@ -31,6 +31,12 @@ export default function Projects() {
   useEffect(() => {
     fetchRequests();
     fetchStaff();
+
+    const interval = setInterval(() => {
+      fetchRequests();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchRequests = async () => {
@@ -56,6 +62,7 @@ export default function Projects() {
       await API.put("/requests/status", { requestId, status });
       alert("Status updated successfully");
       fetchRequests();
+      fetchStaff();
       setShowModal(false);
     } catch (err) {
       alert("Failed to update status");
@@ -76,25 +83,12 @@ export default function Projects() {
     }
   };
 
-  const updatePaymentStatus = async (requestId, paymentStatus) => {
-    try {
-      setSavingBill(true);
-      const res = await API.put("/requests/payment-status", { requestId, paymentStatus });
-      alert("Payment status updated successfully");
-      setSelectedRequest(res.data);
-      fetchRequests();
-    } catch (err) {
-      alert("Failed to update payment status");
-    } finally {
-      setSavingBill(false);
-    }
-  };
-
   const assignStaff = async (requestId, staffId) => {
     try {
       await API.put("/requests/assign", { requestId, staffId });
       alert("Staff assigned successfully");
       fetchRequests();
+      fetchStaff();
       if (selectedRequest && selectedRequest._id === requestId) {
         const updated = requests.find(r => r._id === requestId);
         // We need to wait for the next fetch or manually update local state
@@ -102,7 +96,7 @@ export default function Projects() {
         setShowModal(false);
       }
     } catch (err) {
-      alert("Failed to assign staff");
+      alert("Failed to assign staff: " + (err.response?.data?.message || "Error"));
     }
   };
 
@@ -534,24 +528,7 @@ export default function Projects() {
                       <div className={`badge ${selectedRequest.paymentStatus === 'Paid' ? 'bg-success' : 'bg-warning'} fs-6`}>
                         {selectedRequest.paymentStatus}
                       </div>
-                      <div className="btn-group btn-group-sm" role="group" aria-label="Manage Billing">
-                        <button
-                          type="button"
-                          className={`btn ${selectedRequest.paymentStatus === 'Paid' ? 'btn-success' : 'btn-outline-success'}`}
-                          onClick={() => updatePaymentStatus(selectedRequest._id, 'Paid')}
-                          disabled={savingBill}
-                        >
-                          Mark Paid
-                        </button>
-                        <button
-                          type="button"
-                          className={`btn ${selectedRequest.paymentStatus !== 'Paid' ? 'btn-warning' : 'btn-outline-warning'}`}
-                          onClick={() => updatePaymentStatus(selectedRequest._id, 'Unpaid')}
-                          disabled={savingBill}
-                        >
-                          Mark Unpaid
-                        </button>
-                      </div>
+                      <small className="text-muted">Auto-updated after Stripe payment</small>
                     </div>
                   </div>
                 </div>

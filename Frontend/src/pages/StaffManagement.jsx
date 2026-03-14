@@ -3,7 +3,8 @@ import API from "../api/api";
 
 export default function StaffManagement() {
   const [staffList, setStaffList] = useState([]);
-  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", password: "", role: "staff" });
+  const [availableStaffIds, setAvailableStaffIds] = useState(new Set());
+  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", role: "staff" });
 
   useEffect(() => {
     fetchStaff();
@@ -11,19 +12,33 @@ export default function StaffManagement() {
 
   const fetchStaff = async () => {
     try {
-      const res = await API.get("/auth/staff");
-      setStaffList(res.data);
+      const [allStaffRes, availableRes] = await Promise.all([
+        API.get("/auth/staff"),
+        API.get("/auth/staff/available")
+      ]);
+      setStaffList(allStaffRes.data);
+      setAvailableStaffIds(new Set((availableRes.data || []).map((s) => s._id)));
     } catch (err) {
       console.log(err);
     }
   };
 
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$";
+    let pass = "";
+    for (let i = 0; i < 10; i += 1) {
+      pass += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return pass;
+  };
+
   const addStaff = async () => {
-    if (!form.name || !form.email || !form.phoneNumber || !form.password) return alert("Please fill all fields");
+    if (!form.name || !form.email || !form.phoneNumber) return alert("Please fill all fields");
     try {
-      await API.post("/auth/register", form);
-      alert("Staff added successfully");
-      setForm({ name: "", email: "", phoneNumber: "", password: "", role: "staff" });
+      const password = generatePassword();
+      await API.post("/auth/register", { ...form, password });
+      alert("Staff added successfully. Temporary password: " + password);
+      setForm({ name: "", email: "", phoneNumber: "", role: "staff" });
       fetchStaff();
     } catch (err) {
       alert("Failed to add staff");
@@ -68,15 +83,6 @@ export default function StaffManagement() {
             />
           </div>
           <div className="col-md-3">
-            <input 
-              className="form-control" 
-              placeholder="Password" 
-              type="password"
-              value={form.password}
-              onChange={e => setForm({...form, password:e.target.value})}
-            />
-          </div>
-          <div className="col-md-3">
             <button className="btn btn-primary w-100 fw-bold" onClick={addStaff}>Add Staff</button>
           </div>
         </div>
@@ -95,6 +101,7 @@ export default function StaffManagement() {
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Role</th>
+                  <th>Status</th>
                   <th className="text-end px-4">Actions</th>
                 </tr>
               </thead>
@@ -106,6 +113,13 @@ export default function StaffManagement() {
                       <td>{s.email}</td>
                       <td>{s.phoneNumber}</td>
                       <td><span className="badge bg-info text-dark">Staff</span></td>
+                      <td>
+                        {availableStaffIds.has(s._id) ? (
+                          <span className="badge bg-success">Available</span>
+                        ) : (
+                          <span className="badge bg-secondary">Busy</span>
+                        )}
+                      </td>
                       <td className="text-end px-4">
                         <button className="btn btn-sm btn-outline-danger"><i className="bi bi-trash"></i></button>
                       </td>
@@ -113,7 +127,7 @@ export default function StaffManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="text-center py-4 text-muted">No staff members found.</td>
+                    <td colSpan="6" className="text-center py-4 text-muted">No staff members found.</td>
                   </tr>
                 )}
               </tbody>

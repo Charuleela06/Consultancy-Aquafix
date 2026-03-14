@@ -22,6 +22,7 @@ app.use("/api/government", require("./routes/governmentRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));
 app.use("/api/stats", require("./routes/statsRoutes"));
 app.use("/api/stripe", require("./routes/stripeRoutes"));
+app.use("/api/analytics", require("./routes/analyticsRoutes"));
 
 // DB Connection
 mongoose.connect(process.env.MONGO_URI)

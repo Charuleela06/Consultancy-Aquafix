@@ -38,6 +38,9 @@ export default function Navbar() {
                       <NavLink className="nav-link mx-1" to="/projects" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Requests</NavLink>
                     </li>
                     <li className="nav-item">
+                      <NavLink className="nav-link mx-1" to="/revenue-analytics" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Revenue</NavLink>
+                    </li>
+                    <li className="nav-item">
                       <NavLink className="nav-link mx-1" to="/government" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Government</NavLink>
                     </li>
                   </>
@@ -48,6 +51,9 @@ export default function Navbar() {
                     </li>
                     <li className="nav-item">
                       <NavLink className="nav-link mx-1" to="/request" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Service Request</NavLink>
+                    </li>
+                    <li className="nav-item">
+                      <NavLink className="nav-link mx-1" to="/my-requests" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>My Requests</NavLink>
                     </li>
                     <li className="nav-item">
                       <NavLink className="nav-link mx-1" to="/transactions" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Transactions</NavLink>
