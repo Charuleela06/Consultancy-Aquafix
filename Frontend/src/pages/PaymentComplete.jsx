@@ -74,7 +74,7 @@ export default function PaymentComplete() {
                 <button className="btn btn-primary px-4" onClick={() => navigate("/transactions")}>
                   Go to Transactions
                 </button>
-                <button className="btn btn-outline-secondary px-4" onClick={() => navigate("/home")}>
+                <button className="btn btn-outline-secondary px-4" onClick={() => navigate("/")}>
                   Go to Home
                 </button>
               </div>

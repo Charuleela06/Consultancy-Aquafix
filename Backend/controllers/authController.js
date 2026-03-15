@@ -2,6 +2,14 @@ const User = require("../models/User");
 const ServiceRequest = require("../models/ServiceRequest");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require("google-auth-library");
+
+const getGoogleClient = () => {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    throw new Error("Server misconfigured: GOOGLE_CLIENT_ID is not set");
+  }
+  return new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+};
 
 // Register
 exports.register = async (req, res) => {
@@ -21,6 +29,57 @@ exports.register = async (req, res) => {
     await user.save();
     res.status(201).json({ message: "User Registered Successfully" });
 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "credential is required" });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "Server misconfigured: JWT_SECRET is not set" });
+    }
+
+    const client = getGoogleClient();
+    const ticket = await client.verifyIdToken({
+      idToken: String(credential),
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload?.email;
+    const name = payload?.name || payload?.given_name || "Google User";
+
+    if (!email) {
+      return res.status(400).json({ message: "Google token missing email" });
+    }
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      const randomPassword = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+      user = new User({
+        name,
+        email,
+        password: hashedPassword,
+        role: "user"
+      });
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({ token, user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

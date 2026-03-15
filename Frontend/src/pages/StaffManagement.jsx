@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
+import "../styles/StaffManagement.css";
 
 export default function StaffManagement() {
   const [staffList, setStaffList] = useState([]);
   const [availableStaffIds, setAvailableStaffIds] = useState(new Set());
+  const [assignedTasks, setAssignedTasks] = useState({});
   const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", role: "staff" });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStaff();
+    fetchAssignedTasks();
   }, []);
 
   const fetchStaff = async () => {
@@ -18,6 +22,25 @@ export default function StaffManagement() {
       ]);
       setStaffList(allStaffRes.data);
       setAvailableStaffIds(new Set((availableRes.data || []).map((s) => s._id)));
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAssignedTasks = async () => {
+    try {
+      const res = await API.get("/requests");
+      const tasks = {};
+      res.data.forEach(request => {
+        if (request.assignedStaff) {
+          const staffId = request.assignedStaff._id;
+          if (!tasks[staffId]) tasks[staffId] = [];
+          tasks[staffId].push(request);
+        }
+      });
+      setAssignedTasks(tasks);
     } catch (err) {
       console.log(err);
     }
@@ -45,96 +68,152 @@ export default function StaffManagement() {
     }
   };
 
+  const getStaffTasks = (staffId) => {
+    return assignedTasks[staffId] || [];
+  };
+
+  const getAvailabilityIcon = (staffId) => {
+    const isAvailable = availableStaffIds.has(staffId);
+    return isAvailable ? '🟢' : '🔴';
+  };
+
+  const getAvailabilityText = (staffId) => {
+    const isAvailable = availableStaffIds.has(staffId);
+    return isAvailable ? 'Available' : 'Busy';
+  };
+
   return (
-    <div className="container py-4">
+    <div className="staff-container">
       <div className="row mb-4">
         <div className="col">
-          <h1 className="fw-bold text-primary">Staff Management</h1>
-          <p className="text-muted">Add and manage consultancy staff members.</p>
+          <h1 className="staff-title">Staff Management</h1>
+          <p className="staff-subtitle">Add and manage consultancy staff members and their assignments.</p>
         </div>
       </div>
 
-      <div className="card p-4 shadow-sm mb-5 border-0">
-        <h4 className="mb-3 fw-bold">Add New Staff</h4>
-        <div className="row g-3">
-          <div className="col-md-3">
-            <input 
-              className="form-control" 
-              placeholder="Full Name" 
-              value={form.name}
-              onChange={e => setForm({...form, name:e.target.value})}
-            />
-          </div>
-          <div className="col-md-3">
-            <input 
-              className="form-control" 
-              placeholder="Email" 
-              type="email"
-              value={form.email}
-              onChange={e => setForm({...form, email:e.target.value})}
-            />
-          </div>
-          <div className="col-md-3">
-            <input 
-              className="form-control" 
-              placeholder="Phone Number" 
-              value={form.phoneNumber}
-              onChange={e => setForm({...form, phoneNumber:e.target.value})}
-            />
-          </div>
-          <div className="col-md-3">
-            <button className="btn btn-primary w-100 fw-bold" onClick={addStaff}>Add Staff</button>
+      {/* Add Staff Form */}
+      <div className="add-staff-card mb-5">
+        <div className="card-header">
+          <h4 className="mb-0">Add New Staff Member</h4>
+        </div>
+        <div className="card-body">
+          <div className="row g-3">
+            <div className="col-md-4">
+              <input
+                className="form-control"
+                placeholder="Full Name"
+                value={form.name}
+                onChange={e => setForm({...form, name:e.target.value})}
+              />
+            </div>
+            <div className="col-md-4">
+              <input
+                className="form-control"
+                placeholder="Email Address"
+                type="email"
+                value={form.email}
+                onChange={e => setForm({...form, email:e.target.value})}
+              />
+            </div>
+            <div className="col-md-4">
+              <div className="input-group">
+                <input
+                  className="form-control"
+                  placeholder="Phone Number"
+                  value={form.phoneNumber}
+                  onChange={e => setForm({...form, phoneNumber:e.target.value})}
+                />
+                <button className="btn btn-primary" onClick={addStaff}>Add Staff</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="card border-0 shadow-sm">
-        <div className="card-header bg-white py-3">
-          <h5 className="mb-0 fw-bold">Staff Directory</h5>
+      {/* Staff Directory */}
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th className="px-4">Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th className="text-end px-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staffList.length > 0 ? (
-                  staffList.map(s => (
-                    <tr key={s._id}>
-                      <td className="px-4 fw-bold">{s.name}</td>
-                      <td>{s.email}</td>
-                      <td>{s.phoneNumber}</td>
-                      <td><span className="badge bg-info text-dark">Staff</span></td>
-                      <td>
-                        {availableStaffIds.has(s._id) ? (
-                          <span className="badge bg-success">Available</span>
+      ) : (
+        <div className="row">
+          {staffList.length > 0 ? (
+            staffList.map(staff => {
+              const tasks = getStaffTasks(staff._id);
+              const isAvailable = availableStaffIds.has(staff._id);
+
+              return (
+                <div key={staff._id} className="col-lg-4 col-md-6 mb-4">
+                  <div className="staff-card">
+                    <div className="card-header">
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <h5 className="staff-name">{staff.name}</h5>
+                          <p className="staff-role">Staff Member</p>
+                        </div>
+                        <div className="availability-indicator">
+                          <span className="availability-icon">{getAvailabilityIcon(staff._id)}</span>
+                          <span className={`availability-text ${isAvailable ? 'available' : 'busy'}`}>
+                            {getAvailabilityText(staff._id)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <div className="staff-info">
+                        <div className="info-item">
+                          <i className="bi bi-envelope"></i>
+                          <span>{staff.email}</span>
+                        </div>
+                        <div className="info-item">
+                          <i className="bi bi-telephone"></i>
+                          <span>{staff.phoneNumber}</span>
+                        </div>
+                      </div>
+
+                      <div className="tasks-section">
+                        <h6 className="tasks-title">Assigned Tasks ({tasks.length})</h6>
+                        {tasks.length > 0 ? (
+                          <div className="tasks-list">
+                            {tasks.slice(0, 3).map(task => (
+                              <div key={task._id} className="task-item">
+                                <span className="task-service">{task.serviceType}</span>
+                                <span className={`task-status status-${task.status.toLowerCase().replace(' ', '-')}`}>
+                                  {task.status}
+                                </span>
+                              </div>
+                            ))}
+                            {tasks.length > 3 && (
+                              <div className="more-tasks">+{tasks.length - 3} more tasks</div>
+                            )}
+                          </div>
                         ) : (
-                          <span className="badge bg-secondary">Busy</span>
+                          <p className="no-tasks">No tasks assigned</p>
                         )}
-                      </td>
-                      <td className="text-end px-4">
-                        <button className="btn btn-sm btn-outline-danger"><i className="bi bi-trash"></i></button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="text-center py-4 text-muted">No staff members found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                    <div className="card-footer">
+                      <button className="btn btn-outline-danger btn-sm">
+                        <i className="bi bi-trash me-1"></i>Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="col text-center py-5">
+              <div className="empty-state">
+                <i className="bi bi-people display-1 text-muted mb-4"></i>
+                <h4>No staff members found</h4>
+                <p className="text-muted">Add your first staff member to get started.</p>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

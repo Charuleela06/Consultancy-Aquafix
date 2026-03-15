@@ -98,17 +98,24 @@ export const generateBillPDF = (bill) => {
   doc.text("Grand Total", 140, finalY + 22);
   doc.text((bill.grandTotal || 0).toFixed(2), 195, finalY + 22, { align: "right" });
 
+  const staffSalaryPercent = Number(bill.staffSalaryPercent ?? 40);
+  const staffSalaryAmount = Number(bill.staffSalaryAmount ?? 0);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Staff Salary (${staffSalaryPercent}%)`, 140, finalY + 30);
+  doc.text(staffSalaryAmount.toFixed(2), 195, finalY + 30, { align: "right" });
+
   // Amount in words
   doc.setFontSize(10);
   doc.setFont("helvetica", "italic");
   const words = numberToWords(Math.round(bill.grandTotal || 0));
-  doc.text(`Rupees: ${words} only`, 15, finalY + 35);
+  doc.text(`Rupees: ${words} only`, 15, finalY + 40);
 
   // Signatory
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("For SRM AGENCY", 195, finalY + 50, { align: "right" });
-  doc.text("(Authorised Signatory)", 195, finalY + 70, { align: "right" });
+  doc.text("For SRM AGENCY", 195, finalY + 55, { align: "right" });
+  doc.text("(Authorised Signatory)", 195, finalY + 75, { align: "right" });
 
   doc.save(`Invoice_${bill.invoiceNo || 'Draft'}.pdf`);
 };

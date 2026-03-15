@@ -1,14 +1,37 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
+  const handleRequest = () => {
+    if (token) navigate('/request');
+    else navigate('/login');
+  };
+
+  const handleGetStarted = () => {
+    if (token) navigate('/request');
+    else navigate('/login');
+  };
+
+  const handleViewAllRequests = () => {
+    if (token) navigate('/my-requests');
+    else navigate('/login');
+  };
+
   return (
     <div className="home-container">
       <header className="hero-section text-center text-white d-flex align-items-center justify-content-center">
+        <div className="app-blob blue" style={{ top: "-240px", left: "-180px" }}></div>
+        <div className="app-blob pink" style={{ top: "-220px", right: "-220px", animationDelay: "-2.2s" }}></div>
         <div className="container">
-          <h1 className="display-3 fw-bold mb-4">Expert Services</h1>
-          <p className="lead mb-5">Transforming your business with innovative solutions and strategic insights.</p>
-          <a href="/request" className="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">Request a Service</a>
+          <h1 className="display-3 fw-bold mb-4 app-slide-up">Expert Services</h1>
+          <p className="lead mb-5 app-slide-up" style={{ animationDelay: "80ms" }}>Transforming your business with innovative solutions and strategic insights.</p>
+          <button type="button" onClick={handleRequest} className="btn btn-navbar btn-lg px-5 py-3 rounded-pill shadow app-pop" style={{ animationDelay: "140ms" }}>
+            Request a Service
+          </button>
         </div>
       </header>
 
@@ -17,7 +40,7 @@ const Home = () => {
           <h2 className="text-center mb-5 fw-bold">Our Services</h2>
           <div className="row g-4">
             <div className="col-md-4">
-              <div className="card h-100 border-0 shadow-sm p-4">
+              <div className="card h-100 border-0 shadow-sm p-4 app-hover-lift app-fade-in">
                 <div className="card-body text-center">
                   <i className="bi bi-briefcase fs-1 text-primary mb-3"></i>
                   <h5 className="card-title fw-bold">Business Strategy</h5>
@@ -26,7 +49,7 @@ const Home = () => {
               </div>
             </div>
             <div className="col-md-4">
-              <div className="card h-100 border-0 shadow-sm p-4">
+              <div className="card h-100 border-0 shadow-sm p-4 app-hover-lift app-fade-in" style={{ animationDelay: "70ms" }}>
                 <div className="card-body text-center">
                   <i className="bi bi-graph-up-arrow fs-1 text-success mb-3"></i>
                   <h5 className="card-title fw-bold">Market Analysis</h5>
@@ -35,7 +58,7 @@ const Home = () => {
               </div>
             </div>
             <div className="col-md-4">
-              <div className="card h-100 border-0 shadow-sm p-4">
+              <div className="card h-100 border-0 shadow-sm p-4 app-hover-lift app-fade-in" style={{ animationDelay: "140ms" }}>
                 <div className="card-body text-center">
                   <i className="bi bi-gear fs-1 text-warning mb-3"></i>
                   <h5 className="card-title fw-bold">Operations Optimization</h5>
@@ -44,8 +67,10 @@ const Home = () => {
               </div>
             </div>
           </div>
-          <div className="text-center mt-5">
-            <a href="/projects" className="btn btn-outline-primary btn-lg px-5 py-3 rounded-pill shadow-sm">View All Projects</a>
+          <div className="text-center mt-5 d-flex justify-content-center flex-wrap gap-3">
+            <button type="button" onClick={handleViewAllRequests} className="btn btn-navbar-outline btn-lg px-5 py-3 rounded-pill shadow-sm app-pop">
+              View All Requests
+            </button>
           </div>
         </div>
       </section>
@@ -73,7 +98,7 @@ const Home = () => {
         <div className="container">
           <h2 className="mb-4">Ready to take your business to the next level?</h2>
           <p className="lead mb-4">Contact us today to discuss how we can help you achieve your goals.</p>
-          <a href="/request" className="btn btn-light btn-lg px-5 py-3 rounded-pill shadow">Get Started</a>
+          <button type="button" onClick={handleGetStarted} className="btn btn-navbar btn-lg px-5 py-3 rounded-pill shadow">Get Started</button>
         </div>
       </footer>
     </div>

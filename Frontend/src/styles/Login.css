@@ -1,1 +1,19 @@
 /* Styles for Login page */
+
+.bg-navbar-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+}
+
+.btn-navbar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-navbar:hover,
+.btn-navbar:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(102, 126, 234, 0.35);
+}

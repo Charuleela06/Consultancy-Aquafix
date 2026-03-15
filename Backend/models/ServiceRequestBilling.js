@@ -26,6 +26,8 @@ const ServiceRequestBillingSchema = new mongoose.Schema({
   cgstAmount: Number,
   sgstAmount: Number,
   grandTotal: Number,
+  staffSalaryPercent: { type: Number, default: 40 },
+  staffSalaryAmount: { type: Number, default: 0 },
   status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" }
 }, { timestamps: true });
 

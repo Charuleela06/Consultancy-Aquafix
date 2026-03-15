@@ -34,7 +34,9 @@ export default function GovernmentProjects() {
     },
     items: [{ description: "", unit: "", qty: 0, rate: 0, total: 0 }],
     cgstRate: 9,
-    sgstRate: 9
+    sgstRate: 9,
+    staffSalaryPercent: 40,
+    staffSalaryAmount: 0
   });
 
   useEffect(() => {
@@ -101,12 +103,27 @@ export default function GovernmentProjects() {
     return { subtotal, cgstAmount, sgstAmount, grandTotal };
   };
 
+  const calculateStaffSalary = () => {
+    const totals = calculateBillTotals(billForm.items, billForm.cgstRate, billForm.sgstRate);
+    const percent = Number(billForm.staffSalaryPercent ?? 40);
+    const staffSalaryAmount = (Number(totals.grandTotal || 0) * percent) / 100;
+    setBillForm({
+      ...billForm,
+      staffSalaryPercent: percent,
+      staffSalaryAmount
+    });
+  };
+
   const saveBill = async () => {
     const totals = calculateBillTotals(billForm.items, billForm.cgstRate, billForm.sgstRate);
+    const percent = Number(billForm.staffSalaryPercent ?? 40);
+    const staffSalaryAmount = Number(billForm.staffSalaryAmount || 0);
     const billData = {
       ...billForm,
       projectId: selectedProject._id,
-      ...totals
+      ...totals,
+      staffSalaryPercent: percent,
+      staffSalaryAmount
     };
 
     try {
@@ -127,7 +144,11 @@ export default function GovernmentProjects() {
   };
 
   const handleEditBill = (bill) => {
-    setBillForm(bill);
+    setBillForm({
+      ...bill,
+      staffSalaryPercent: bill.staffSalaryPercent ?? 40,
+      staffSalaryAmount: bill.staffSalaryAmount ?? 0
+    });
     setEditingBill(bill);
     setShowBillForm(true);
   };
@@ -156,7 +177,9 @@ export default function GovernmentProjects() {
               billTo: { name: "", address: "", state: "Tamilnadu", stateCode: "33", gstin: "" },
               items: [{ description: "", unit: "", qty: 0, rate: 0, total: 0 }],
               cgstRate: 9,
-              sgstRate: 9
+              sgstRate: 9,
+              staffSalaryPercent: 40,
+              staffSalaryAmount: 0
             });
             setEditingBill(null);
             setShowBillForm(true);
@@ -242,11 +265,16 @@ export default function GovernmentProjects() {
                     <span>Grand Total:</span>
                     <span className="text-primary">{(billForm.items.reduce((sum, i) => sum + i.total, 0) * 1.18).toFixed(2)}</span>
                   </div>
+                  <div className="d-flex justify-content-between border-top pt-2 mt-2">
+                    <span>Staff Salary ({Number(billForm.staffSalaryPercent ?? 40)}%):</span>
+                    <span className="fw-bold">{Number(billForm.staffSalaryAmount || 0).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="d-flex gap-2 mt-4">
+              <button className="btn btn-outline-primary px-4" onClick={calculateStaffSalary}>Calculate Staff Salary</button>
               <button className="btn btn-success px-4" onClick={saveBill}>Save Bill</button>
               <button className="btn btn-light px-4" onClick={() => setShowBillForm(false)}>Cancel</button>
             </div>
@@ -305,103 +333,202 @@ export default function GovernmentProjects() {
   }
 
   return (
-    <div className="container py-4">
+    <div className="gov-projects-container">
       <div className="row mb-4">
         <div className="col">
-          <h1 className="fw-bold text-primary">Government Projects</h1>
-          <p className="text-muted">Public sector initiatives and billing management.</p>
+          <h1 className="gov-projects-title">Government Projects</h1>
+          <p className="gov-projects-subtitle">Public sector initiatives and billing management.</p>
         </div>
       </div>
 
-      <div className="card p-4 shadow-sm mb-5 border-0">
-        <h4 className="mb-3 fw-bold">Add New Project</h4>
-        <div className="row g-3">
-          <div className="col-md-4">
-            <input className="form-control" placeholder="Project Title" value={projectForm.title} onChange={e => setProjectForm({...projectForm, title: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <input className="form-control" placeholder="Panchayat Name" value={projectForm.panchayatName} onChange={e => setProjectForm({...projectForm, panchayatName: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <input className="form-control" placeholder="Location / Village" value={projectForm.locationVillage} onChange={e => setProjectForm({...projectForm, locationVillage: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <input className="form-control" placeholder="Work Type" value={projectForm.workType} onChange={e => setProjectForm({...projectForm, workType: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <input className="form-control" type="number" placeholder="Budget" value={projectForm.budget} onChange={e => setProjectForm({...projectForm, budget: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <input className="form-control" type="date" placeholder="Start Date" value={projectForm.startDate} onChange={e => setProjectForm({...projectForm, startDate: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <input className="form-control" type="date" placeholder="End Date" value={projectForm.endDate} onChange={e => setProjectForm({...projectForm, endDate: e.target.value})} />
-          </div>
-          <div className="col-md-4">
-            <button className="btn btn-primary w-100 fw-bold" onClick={addProject}>Add Project</button>
+      {/* Add Project Form */}
+      <div className="add-project-card mb-5">
+        <div className="card-header">
+          <h4 className="mb-0">Add New Government Project</h4>
+        </div>
+        <div className="card-body">
+          <div className="row g-3">
+            <div className="col-md-6">
+              <input
+                className="form-control"
+                placeholder="Project Title"
+                value={projectForm.title}
+                onChange={e => setProjectForm({...projectForm, title: e.target.value})}
+              />
+            </div>
+            <div className="col-md-6">
+              <input
+                className="form-control"
+                placeholder="Panchayat Name"
+                value={projectForm.panchayatName}
+                onChange={e => setProjectForm({...projectForm, panchayatName: e.target.value})}
+              />
+            </div>
+            <div className="col-md-4">
+              <input
+                className="form-control"
+                placeholder="Location / Village"
+                value={projectForm.locationVillage}
+                onChange={e => setProjectForm({...projectForm, locationVillage: e.target.value})}
+              />
+            </div>
+            <div className="col-md-4">
+              <input
+                className="form-control"
+                placeholder="Work Type"
+                value={projectForm.workType}
+                onChange={e => setProjectForm({...projectForm, workType: e.target.value})}
+              />
+            </div>
+            <div className="col-md-4">
+              <input
+                className="form-control"
+                type="number"
+                placeholder="Budget Amount"
+                value={projectForm.budget}
+                onChange={e => setProjectForm({...projectForm, budget: e.target.value})}
+              />
+            </div>
+            <div className="col-md-3">
+              <input
+                className="form-control"
+                type="date"
+                placeholder="Start Date"
+                value={projectForm.startDate}
+                onChange={e => setProjectForm({...projectForm, startDate: e.target.value})}
+              />
+            </div>
+            <div className="col-md-3">
+              <input
+                className="form-control"
+                type="date"
+                placeholder="End Date"
+                value={projectForm.endDate}
+                onChange={e => setProjectForm({...projectForm, endDate: e.target.value})}
+              />
+            </div>
+            <div className="col-md-6">
+              <button className="btn btn-primary w-100" onClick={addProject}>
+                <i className="bi bi-plus-circle me-2"></i>Add Project
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Projects Grid */}
       <div className="row">
         {projects.length > 0 ? (
-          projects.map(p => (
-            <div key={p._id} className="col-md-6 mb-4">
-              <div
-                className="card h-100 border-0 shadow-sm overflow-hidden"
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/government/${p._id}`)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") navigate(`/government/${p._id}`);
-                }}
-              >
-                <div className="bg-success py-2"></div>
-                <div className="card-body p-4">
-                  <div className="d-flex justify-content-between mb-3">
-                    <h5 className="fw-bold mb-0">{p.title}</h5>
-                    <span className="badge bg-success-subtle text-success">{p.status}</span>
-                  </div>
-                  <div className="mb-3">
-                    <div className="text-muted small"><i className="bi bi-building me-2"></i>{p.panchayatName || p.department || "-"}</div>
-                    <div className="text-muted small"><i className="bi bi-geo-alt me-2"></i>{p.locationVillage || p.location || "-"}</div>
-                    {p.workType && (
-                      <div className="text-muted small"><i className="bi bi-tools me-2"></i>{p.workType}</div>
-                    )}
-                    <div className="text-muted small"><i className="bi bi-calendar3 me-2"></i>
-                      {(p.startDate ? new Date(p.startDate).toLocaleDateString() : "-")}
-                      {" "}to{" "}
-                      {(p.endDate ? new Date(p.endDate).toLocaleDateString() : "-")}
+          projects.map(p => {
+            const budget = p.budget || 0;
+            const billed = p.totalBilledAmount || 0;
+            const remaining = budget - billed;
+            const usagePercent = budget > 0 ? (billed / budget) * 100 : 0;
+
+            return (
+              <div key={p._id} className="col-lg-6 mb-4">
+                <div className="project-card">
+                  <div className="card-header">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <h5 className="project-title">{p.title}</h5>
+                      <span className={`status-badge status-${p.status.toLowerCase()}`}>
+                        {p.status}
+                      </span>
+                    </div>
+                    <div className="project-location">
+                      <i className="bi bi-geo-alt"></i>
+                      {p.panchayatName || p.locationVillage || 'Location not specified'}
                     </div>
                   </div>
-                  <div className="d-flex justify-content-between align-items-center mt-4">
-                    <div className="d-flex align-items-center gap-3">
-                      <div className="fw-bold text-primary">Budget: ₹{(p.budget ?? 0).toLocaleString()}</div>
+
+                  <div className="card-body">
+                    <div className="project-details">
+                      {p.workType && (
+                        <div className="detail-item">
+                          <i className="bi bi-tools"></i>
+                          <span>{p.workType}</span>
+                        </div>
+                      )}
+                      <div className="detail-item">
+                        <i className="bi bi-calendar3"></i>
+                        <span>
+                          {p.startDate ? new Date(p.startDate).toLocaleDateString() : 'Start'} - {p.endDate ? new Date(p.endDate).toLocaleDateString() : 'End'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="budget-section">
+                      <div className="budget-header">
+                        <span className="budget-label">Budget Usage</span>
+                        <span className="budget-percent">{usagePercent.toFixed(1)}%</span>
+                      </div>
+                      <div className="budget-bar">
+                        <div
+                          className="budget-used"
+                          style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                        ></div>
+                      </div>
+                      <div className="budget-amounts">
+                        <div className="amount-item">
+                          <span className="amount-label">Allocated:</span>
+                          <span className="amount-value">₹{budget.toLocaleString()}</span>
+                        </div>
+                        <div className="amount-item">
+                          <span className="amount-label">Billed:</span>
+                          <span className="amount-value">₹{billed.toLocaleString()}</span>
+                        </div>
+                        <div className="amount-item">
+                          <span className="amount-label">Remaining:</span>
+                          <span className={`amount-value ${remaining < 0 ? 'over-budget' : ''}`}>
+                            ₹{remaining.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card-footer">
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-primary flex-fill"
+                        onClick={() => navigate(`/government/${p._id}`)}
+                      >
+                        <i className="bi bi-eye me-1"></i>View Details
+                      </button>
+                      <button
+                        className="btn btn-success flex-fill"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewBilling(p);
+                        }}
+                      >
+                        <i className="bi bi-receipt me-1"></i>Billings
+                      </button>
                       {p.lastBillId && (
-                        <button 
-                          className="btn btn-sm btn-link p-0 text-danger fs-4" 
+                        <button
+                          className="btn btn-outline-danger"
                           title="Download Last Approved Bill"
                           onClick={(e) => {
                             e.stopPropagation();
                             generateBillPDF(p.lastBillId);
                           }}
                         >
-                          <i className="bi bi-file-earmark-pdf-fill"></i>
+                          <i className="bi bi-download"></i>
                         </button>
                       )}
                     </div>
-                    <button className="btn btn-outline-success btn-sm px-4 rounded-pill" onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewBilling(p);
-                    }}>Manage Billings</button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="col text-center py-5">
-            <p className="text-muted">No government projects found.</p>
+            <div className="empty-state">
+              <i className="bi bi-building display-1 text-muted mb-4"></i>
+              <h4>No government projects found</h4>
+              <p className="text-muted">Add your first government project to get started.</p>
+            </div>
           </div>
         )}
       </div>

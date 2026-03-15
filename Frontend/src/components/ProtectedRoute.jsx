@@ -5,14 +5,14 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (requiredRole) {
     const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     const normalizedAllowedRoles = allowedRoles.map((r) => String(r).toLowerCase());
     if (!normalizedAllowedRoles.includes(role)) {
-      return <Navigate to={role === "admin" ? "/dashboard" : "/home"} replace />;
+      return <Navigate to={role === "admin" ? "/dashboard" : "/"} replace />;
     }
   }
 

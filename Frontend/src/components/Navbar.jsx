@@ -13,9 +13,9 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm px-4 mb-4">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm px-4 mb-4 sticky-top">
       <div className="container-fluid">
-        <Link className="navbar-brand fw-bold d-flex align-items-center gap-2" to={role === "admin" ? "/dashboard" : "/home"}>
+        <Link className="navbar-brand fw-bold d-flex align-items-center gap-2" to={role === "admin" ? "/dashboard" : "/"}>
           <i className="bi bi-shield-check fs-4"></i>
           <span>Aquafix</span>
         </Link>
@@ -26,6 +26,11 @@ export default function Navbar() {
           <ul className="navbar-nav ms-auto align-items-center">
             {token ? (
               <>
+                <li className="nav-item me-2 d-none d-lg-block">
+                  <span className="badge rounded-pill text-bg-light text-primary fw-semibold px-3 py-2" style={{ opacity: 0.95 }}>
+                    {role || "user"}
+                  </span>
+                </li>
                 {role === "admin" ? (
                   <>
                     <li className="nav-item">
@@ -47,7 +52,7 @@ export default function Navbar() {
                 ) : (
                   <>
                     <li className="nav-item">
-                      <NavLink className="nav-link mx-1" to="/home" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Home</NavLink>
+                      <NavLink className="nav-link mx-1" to="/" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Home</NavLink>
                     </li>
                     <li className="nav-item">
                       <NavLink className="nav-link mx-1" to="/request" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Service Request</NavLink>
@@ -69,7 +74,10 @@ export default function Navbar() {
             ) : (
               <>
                 <li className="nav-item">
-                  <NavLink className="nav-link mx-1" to="/" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Login</NavLink>
+                  <NavLink className="nav-link mx-1" to="/" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Home</NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink className="nav-link mx-1" to="/login" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Login</NavLink>
                 </li>
                 <li className="nav-item">
                   <NavLink className="nav-link mx-1" to="/register" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Register</NavLink>

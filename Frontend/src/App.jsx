@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -14,31 +14,96 @@ import PaymentComplete from "./pages/PaymentComplete";
 import MyRequests from "./pages/MyRequests";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Toast from "./components/Toast";
 
 function App() {
   return (
     <BrowserRouter>
       <div className="d-flex flex-column min-vh-100">
-        <Navbar />
-        <main className="flex-grow-1">
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/home" element={<ProtectedRoute requiredRole={["user", "staff"]}><Home /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute requiredRole="admin"><Dashboard /></ProtectedRoute>} />
-            <Route path="/staff-management" element={<ProtectedRoute requiredRole="admin"><StaffManagement /></ProtectedRoute>} />
-            <Route path="/projects" element={<ProtectedRoute requiredRole="admin"><Projects /></ProtectedRoute>} />
-            <Route path="/request" element={<ProtectedRoute requiredRole={["user", "staff"]}><ServiceRequest /></ProtectedRoute>} />
-            <Route path="/my-requests" element={<ProtectedRoute requiredRole={["user", "staff"]}><MyRequests /></ProtectedRoute>} />
-            <Route path="/transactions" element={<ProtectedRoute requiredRole={["user", "staff"]}><Transactions /></ProtectedRoute>} />
-            <Route path="/payment-complete" element={<ProtectedRoute requiredRole={["user", "staff"]}><PaymentComplete /></ProtectedRoute>} />
-            <Route path="/government" element={<ProtectedRoute requiredRole="admin"><GovernmentProjects /></ProtectedRoute>} />
-            <Route path="/government/:id" element={<ProtectedRoute requiredRole="admin"><GovernmentProjectDetails /></ProtectedRoute>} />
-            <Route path="/revenue-analytics" element={<ProtectedRoute requiredRole="admin"><RevenueAnalytics /></ProtectedRoute>} />
-          </Routes>
-        </main>
-        <Footer />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Navbar />
+                <main className="flex-grow-1">
+                  <Home />
+                </main>
+                <Footer />
+              </>
+            }
+          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route
+            path="/request"
+            element={
+              <ProtectedRoute requiredRole={["user", "staff"]}>
+                <>
+                  <Navbar />
+                  <main className="flex-grow-1">
+                    <ServiceRequest />
+                  </main>
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-requests"
+            element={
+              <ProtectedRoute requiredRole={["user", "staff"]}>
+                <>
+                  <Navbar />
+                  <main className="flex-grow-1">
+                    <MyRequests />
+                  </main>
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute requiredRole={["user", "staff"]}>
+                <>
+                  <Navbar />
+                  <main className="flex-grow-1">
+                    <Transactions />
+                  </main>
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-complete"
+            element={
+              <ProtectedRoute requiredRole={["user", "staff"]}>
+                <>
+                  <Navbar />
+                  <main className="flex-grow-1">
+                    <PaymentComplete />
+                  </main>
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes with Layout */}
+          <Route path="/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
+          <Route path="/staff-management" element={<ProtectedRoute requiredRole="admin"><AdminLayout><StaffManagement /></AdminLayout></ProtectedRoute>} />
+          <Route path="/projects" element={<ProtectedRoute requiredRole="admin"><AdminLayout><Projects /></AdminLayout></ProtectedRoute>} />
+          <Route path="/government" element={<ProtectedRoute requiredRole="admin"><AdminLayout><GovernmentProjects /></AdminLayout></ProtectedRoute>} />
+          <Route path="/government/:id" element={<ProtectedRoute requiredRole="admin"><AdminLayout><GovernmentProjectDetails /></AdminLayout></ProtectedRoute>} />
+          <Route path="/revenue-analytics" element={<ProtectedRoute requiredRole="admin"><AdminLayout><RevenueAnalytics /></AdminLayout></ProtectedRoute>} />
+        </Routes>
+        <Toast />
       </div>
     </BrowserRouter>
   );

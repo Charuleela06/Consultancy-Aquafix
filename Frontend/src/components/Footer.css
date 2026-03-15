@@ -1,0 +1,29 @@
+.footer-link {
+  transition: color 0.3s ease-in-out;
+}
+
+.footer-link:hover {
+  color: #667eea !important;
+}
+
+.social-icon {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.social-icon:hover {
+  transform: translateY(-5px);
+  color: #764ba2 !important;
+}
+
+footer hr {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.footer-brand h5 {
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+}

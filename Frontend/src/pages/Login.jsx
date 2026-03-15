@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
 import "../styles/Login.css";
@@ -7,6 +7,49 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+
+  useEffect(() => {
+    if (token) {
+      if (role === "admin") navigate("/dashboard");
+      else navigate("/request");
+      return;
+    }
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const google = window.google;
+
+    if (!clientId || !google?.accounts?.id) return;
+
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        try {
+          const res = await API.post("/auth/google", { credential: response.credential });
+          localStorage.setItem("token", res.data.token);
+          const userRole = res.data.user?.role || "user";
+          localStorage.setItem("role", userRole);
+          if (userRole === "admin") navigate("/dashboard");
+          else navigate("/");
+        } catch (err) {
+          alert("Google login failed: " + (err.response?.data?.message || "Try again"));
+        }
+      }
+    });
+
+    const el = document.getElementById("googleLoginBtn");
+    if (el) {
+      el.innerHTML = "";
+      google.accounts.id.renderButton(el, {
+        theme: "outline",
+        size: "large",
+        width: 360,
+        text: "continue_with"
+      });
+    }
+  }, [navigate, token, role]);
 
   const login = async () => {
     try {
@@ -21,7 +64,7 @@ export default function Login() {
       if (userRole === "admin") {
         navigate("/dashboard");
       } else {
-        navigate("/home");
+        navigate("/");
       }
     } catch (err) {
       alert("Login failed: " + (err.response?.data?.message || "Invalid credentials"));
@@ -29,10 +72,10 @@ export default function Login() {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
       <div className="card p-4 shadow-lg border-0" style={{ width: "100%", maxWidth: "400px" }}>
         <div className="text-center mb-4">
-          <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: "60px", height: "60px" }}>
+          <div className="bg-navbar-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: "60px", height: "60px" }}>
             <i className="bi bi-person-lock fs-2"></i>
           </div>
           <h2 className="fw-bold">Member Login</h2>
@@ -56,7 +99,11 @@ export default function Login() {
             onChange={e => setPassword(e.target.value)} 
           />
         </div>
-        <button className="btn btn-primary w-100 mt-2" onClick={login}>Login</button>
+        <button className="btn btn-navbar w-100 mt-2" onClick={login}>Login</button>
+        <div className="text-center my-3 text-muted small">or</div>
+        <div className="d-flex justify-content-center">
+          <div id="googleLoginBtn"></div>
+        </div>
         <p className="text-center mt-3">
           Don't have an account? <a href="/register">Register here</a>
         </p>

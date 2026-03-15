@@ -5,6 +5,7 @@ import "../styles/Projects.css";
 
 export default function Projects() {
   const [requests, setRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +15,8 @@ export default function Projects() {
   const [showBillForm, setShowBillForm] = useState(false);
   const [editingBill, setEditingBill] = useState(null);
   const [downloadingBill, setDownloadingBill] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
   const [billForm, setBillForm] = useState({
     invoiceNo: "",
     billTo: {
@@ -25,7 +28,9 @@ export default function Projects() {
     },
     items: [{ description: "", unit: "", qty: 0, rate: 0, total: 0 }],
     cgstRate: 9,
-    sgstRate: 9
+    sgstRate: 9,
+    staffSalaryPercent: 40,
+    staffSalaryAmount: 0
   });
 
   useEffect(() => {
@@ -39,12 +44,27 @@ export default function Projects() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    filterRequests();
+  }, [requests, statusFilter]);
+
   const fetchRequests = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/requests");
       setRequests(res.data);
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterRequests = () => {
+    if (statusFilter === 'All') {
+      setFilteredRequests(requests);
+    } else {
+      setFilteredRequests(requests.filter(r => r.status === statusFilter));
     }
   };
 
@@ -166,13 +186,28 @@ export default function Projects() {
     return { subtotal, cgstAmount, sgstAmount, grandTotal };
   };
 
+  const calculateStaffSalary = () => {
+    const totals = calculateBillTotals(billForm.items, billForm.cgstRate, billForm.sgstRate);
+    const percent = Number(billForm.staffSalaryPercent ?? 40);
+    const staffSalaryAmount = (Number(totals.grandTotal || 0) * percent) / 100;
+    setBillForm({
+      ...billForm,
+      staffSalaryPercent: percent,
+      staffSalaryAmount
+    });
+  };
+
   const saveBill = async () => {
     if (!selectedRequest) return;
     const totals = calculateBillTotals(billForm.items, billForm.cgstRate, billForm.sgstRate);
+    const percent = Number(billForm.staffSalaryPercent ?? 40);
+    const staffSalaryAmount = Number(billForm.staffSalaryAmount || 0);
     const billData = {
       ...billForm,
       requestId: selectedRequest._id,
-      ...totals
+      ...totals,
+      staffSalaryPercent: percent,
+      staffSalaryAmount
     };
 
     try {
@@ -196,7 +231,11 @@ export default function Projects() {
   };
 
   const handleEditBill = (bill) => {
-    setBillForm(bill);
+    setBillForm({
+      ...bill,
+      staffSalaryPercent: bill.staffSalaryPercent ?? 40,
+      staffSalaryAmount: bill.staffSalaryAmount ?? 0
+    });
     setEditingBill(bill);
     setShowBillForm(true);
   };
@@ -238,7 +277,9 @@ export default function Projects() {
               },
               items: [{ description: "", unit: "", qty: 0, rate: 0, total: 0 }],
               cgstRate: 9,
-              sgstRate: 9
+              sgstRate: 9,
+              staffSalaryPercent: 40,
+              staffSalaryAmount: 0
             });
             setEditingBill(null);
             setShowBillForm(true);
@@ -324,11 +365,16 @@ export default function Projects() {
                     <span>Grand Total:</span>
                     <span className="text-primary">{calculateBillTotals(billForm.items, billForm.cgstRate, billForm.sgstRate).grandTotal.toFixed(2)}</span>
                   </div>
+                  <div className="d-flex justify-content-between border-top pt-2 mt-2">
+                    <span>Staff Salary ({Number(billForm.staffSalaryPercent ?? 40)}%):</span>
+                    <span className="fw-bold">{Number(billForm.staffSalaryAmount || 0).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="d-flex gap-2 mt-4">
+              <button className="btn btn-outline-primary px-4" onClick={calculateStaffSalary} disabled={savingBill}>Calculate Staff Salary</button>
               <button className="btn btn-success px-4" onClick={saveBill} disabled={savingBill}>Save Bill</button>
               <button className="btn btn-light px-4" onClick={() => setShowBillForm(false)} disabled={savingBill}>Cancel</button>
             </div>
@@ -387,52 +433,126 @@ export default function Projects() {
   }
 
   return (
-    <div className="container py-4">
+    <div className="projects-container">
       <div className="row mb-4">
         <div className="col">
-          <h1 className="fw-bold text-primary">Service Requests</h1>
-          <p className="text-muted">Review and manage all incoming service requests from users.</p>
+          <h1 className="projects-title">Service Requests</h1>
+          <p className="projects-subtitle">Review and manage all incoming service requests from users.</p>
         </div>
       </div>
 
-      <div className="row">
-        {requests.length > 0 ? (
-          requests.map(r => (
-            <div key={r._id} className="col-md-4 mb-4">
-              <div className="card h-100 shadow-sm border-0 border-top border-4 border-primary">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <h5 className="card-title fw-bold mb-0">{r.serviceType}</h5>
-                    <span className={`badge ${r.status === 'Pending' ? 'bg-warning' : r.status === 'Completed' ? 'bg-success' : 'bg-primary'}`}>{r.status}</span>
+      {/* Filter Section */}
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <div className="filter-section">
+            <label className="form-label fw-bold">Filter by Status:</label>
+            <div className="d-flex gap-2 flex-wrap">
+              {['All', 'Pending', 'In Progress', 'Completed', 'Cancelled'].map(status => (
+                <button
+                  key={status}
+                  className={`btn btn-sm ${statusFilter === status ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setStatusFilter(status)}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6 text-end">
+          <div className="stats-summary">
+            <span className="badge bg-info me-2">Total: {requests.length}</span>
+            <span className="badge bg-warning me-2">Pending: {requests.filter(r => r.status === 'Pending').length}</span>
+            <span className="badge bg-primary me-2">In Progress: {requests.filter(r => r.status === 'In Progress').length}</span>
+            <span className="badge bg-success">Completed: {requests.filter(r => r.status === 'Completed').length}</span>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      ) : (
+        <div className="row">
+          {filteredRequests.length > 0 ? (
+            filteredRequests.map(r => (
+              <div key={r._id} className="col-lg-4 col-md-6 mb-4">
+                <div className="request-card">
+                  <div className="card-header">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <h5 className="card-title">{r.serviceType}</h5>
+                      <span className={`status-badge status-${r.status.toLowerCase().replace(' ', '-')}`}>
+                        {r.status}
+                      </span>
+                    </div>
                   </div>
-                  <h6 className="card-subtitle mb-2 text-muted">From: {r.name}</h6>
-                  <p className="card-text text-truncate">{r.message}</p>
-                  <div className="mt-3">
-                    <strong>Staff Assigned: </strong>
-                    {r.assignedStaff ? (
-                      <span className="text-success fw-bold">{r.assignedStaff.name}</span>
-                    ) : (
-                      <span className="text-danger fw-bold">Not Assigned</span>
+                  <div className="card-body">
+                    <div className="customer-info mb-3">
+                      <h6 className="customer-name">{r.name}</h6>
+                      <p className="customer-email">{r.email}</p>
+                    </div>
+
+                    {r.image && r.image.data && (
+                      <div className="image-preview mb-3">
+                        <img
+                          src={`data:${r.image.contentType};base64,${r.image.data}`}
+                          alt="Request"
+                          className="img-fluid rounded"
+                        />
+                      </div>
                     )}
+
+                    <p className="request-message">{r.message}</p>
+
+                    <div className="staff-info mb-3">
+                      <strong>Assigned Staff: </strong>
+                      {r.assignedStaff ? (
+                        <span className="staff-assigned">{r.assignedStaff.name}</span>
+                      ) : (
+                        <span className="staff-unassigned">Not Assigned</span>
+                      )}
+                    </div>
+
+                    <div className="payment-info">
+                      <div className="d-flex justify-content-between">
+                        <span>Bill Amount:</span>
+                        <span className="fw-bold">₹{r.billAmount || 0}</span>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span>Payment:</span>
+                        <span className={`payment-status status-${r.paymentStatus.toLowerCase()}`}>
+                          {r.paymentStatus}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="card-footer bg-transparent border-0 d-flex gap-2">
-                  <button className="btn btn-sm btn-outline-primary flex-grow-1" onClick={() => viewDetails(r)}>View Details</button>
-                  <button className="btn btn-sm btn-outline-success flex-grow-1" onClick={() => openBilling(r)}>Manage Billings</button>
-                  {!r.assignedStaff && (
-                    <button className="btn btn-sm btn-primary flex-grow-1" onClick={() => viewDetails(r)}>Set Staff</button>
-                  )}
+                  <div className="card-footer">
+                    <div className="d-flex gap-2">
+                      <button className="btn btn-primary flex-fill" onClick={() => viewDetails(r)}>
+                        <i className="bi bi-eye me-1"></i>View Details
+                      </button>
+                      <button className="btn btn-success flex-fill" onClick={() => openBilling(r)}>
+                        <i className="bi bi-receipt me-1"></i>Billings
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="col text-center py-5">
+              <div className="empty-state">
+                <i className="bi bi-inbox display-1 text-muted mb-4"></i>
+                <h4>No service requests found</h4>
+                <p className="text-muted">Try adjusting your filter or check back later.</p>
+              </div>
             </div>
-          ))
-        ) : (
-          <div className="col text-center py-5">
-            <div className="display-1 text-muted mb-4"><i className="bi bi-inbox"></i></div>
-            <p className="text-muted fs-5">No service requests found.</p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Bootstrap Modal for Details */}
       {showModal && selectedRequest && (

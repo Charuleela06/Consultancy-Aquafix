@@ -1,0 +1,252 @@
+/* Modern Staff Management Styles */
+
+.staff-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.staff-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.staff-subtitle {
+  font-size: 1.1rem;
+  color: #718096;
+  margin-bottom: 0;
+}
+
+.add-staff-card {
+  background: white;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+.add-staff-card .card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border: none;
+}
+
+.add-staff-card .card-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.add-staff-card .card-body {
+  padding: 1.5rem;
+}
+
+.staff-card {
+  background: white;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.staff-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.staff-card .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.25rem 1.5rem;
+}
+
+.staff-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.25rem;
+}
+
+.staff-role {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.availability-indicator {
+  text-align: right;
+}
+
+.availability-icon {
+  font-size: 1.2rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.availability-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+.availability-text.available {
+  background-color: #d1e7dd;
+  color: #198754;
+}
+
+.availability-text.busy {
+  background-color: #f8d7da;
+  color: #dc3545;
+}
+
+.staff-card .card-body {
+  padding: 1.5rem;
+}
+
+.staff-info {
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #4a5568;
+}
+
+.info-item i {
+  color: #667eea;
+  width: 16px;
+}
+
+.tasks-section {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1rem;
+}
+
+.tasks-title {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.75rem;
+}
+
+.tasks-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-service {
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.task-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-in-progress {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.status-completed {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.more-tasks {
+  font-size: 0.8rem;
+  color: #718096;
+  font-style: italic;
+  text-align: center;
+  padding: 0.25rem 0;
+}
+
+.no-tasks {
+  color: #718096;
+  font-style: italic;
+  margin-bottom: 0;
+}
+
+.staff-card .card-footer {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state {
+  color: #718096;
+}
+
+.empty-state h4 {
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .staff-title {
+    font-size: 2rem;
+  }
+
+  .add-staff-card .card-body {
+    padding: 1rem;
+  }
+
+  .staff-card .card-body {
+    padding: 1rem;
+  }
+
+  .staff-card .card-footer {
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .staff-title {
+    font-size: 1.75rem;
+  }
+
+  .staff-name {
+    font-size: 1.1rem;
+  }
+
+  .availability-indicator {
+    text-align: left;
+    margin-top: 0.5rem;
+  }
+}

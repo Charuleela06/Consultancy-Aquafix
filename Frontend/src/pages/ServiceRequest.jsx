@@ -39,93 +39,144 @@ export default function ServiceRequest() {
   };
 
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-10">
-          {error && (
-            <div className="alert alert-danger alert-dismissible fade show" role="alert">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {error}
-              <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+    <div className="service-request-container py-5">
+      <div className="app-blob blue" style={{ top: "-100px", left: "-100px", opacity: 0.3 }}></div>
+      <div className="app-blob pink" style={{ bottom: "-100px", right: "-100px", opacity: 0.2 }}></div>
+      
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-lg-10 col-xl-8">
+            <div className="text-center mb-5 app-slide-up">
+              <h1 className="display-4 fw-bold mb-3">Service Request</h1>
+              <p className="lead text-muted mx-auto" style={{ maxWidth: '600px' }}>
+                Need professional help? Fill out the details below and our expert team will get in touch with you shortly.
+              </p>
             </div>
-          )}
-          <div className="card shadow-lg p-5 mb-5 border-0">
-            <h2 className="text-center mb-4 fw-bold">Service Request Form</h2>
-            <p className="text-center text-muted mb-5">Fill out the form below and we'll get back to you as soon as possible.</p>
-            
-            <div className="row g-4">
-              <div className="col-md-6">
-                <label className="form-label fw-bold">Full Name</label>
-                <input 
-                  className="form-control" 
-                  placeholder="John Doe" 
-                  value={form.name}
-                  onChange={e => setForm({...form, name:e.target.value})}
-                />
+
+            {error && (
+              <div className="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                {error}
+                <button type="button" className="btn-close" onClick={() => setError(null)}></button>
               </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold">Email Address</label>
-                <input 
-                  type="email"
-                  className="form-control" 
-                  placeholder="john@example.com" 
-                  value={form.email}
-                  onChange={e => setForm({...form, email:e.target.value})}
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold">Phone Number</label>
-                <input 
-                  className="form-control" 
-                  placeholder="+1 (555) 000-0000" 
-                  value={form.phoneNumber}
-                  onChange={e => setForm({...form, phoneNumber:e.target.value})}
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold">Address</label>
-                <input 
-                  className="form-control" 
-                  placeholder="Address" 
-                  value={form.address}
-                  onChange={e => setForm({...form, address:e.target.value})}
-                />
-              </div>
-              <div className="col-md-12">
-                <label className="form-label fw-bold">Service Type</label>
-                <select 
-                  className="form-select"
-                  value={form.serviceType}
-                  onChange={e => setForm({...form, serviceType:e.target.value})}
-                >
-                  <option value="">Select a service...</option>
-                  <option value="electrical">Electrical Work</option>
-                  <option value="plumbing">Plumbing Work</option>
-                  <option value="maintenance">General Maintenance</option>
-                  <option value="consultation">Project Consultation</option>
-                </select>
-              </div>
-              <div className="col-md-12">
-                <label className="form-label fw-bold">Detailed Message</label>
-                <textarea 
-                  className="form-control" 
-                  rows="4"
-                  placeholder="Tell us more about your requirements..." 
-                  value={form.message}
-                  onChange={e => setForm({...form, message:e.target.value})}
-                />
-              </div>
-              <div className="col-md-12">
-                <label className="form-label fw-bold">Upload Image (optional)</label>
-                <input
-                  type="file"
-                  className="form-control"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                />
-              </div>
-              <div className="col-md-12 text-center mt-4">
-                <button className="btn btn-primary btn-lg px-5 shadow" onClick={submit}>Submit Request</button>
+            )}
+
+            <div className="form-card app-pop">
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-person me-2"></i>Full Name
+                    </label>
+                    <input 
+                      className="form-control form-control-lg" 
+                      placeholder="Enter your full name" 
+                      value={form.name}
+                      onChange={e => setForm({...form, name:e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-envelope me-2"></i>Email Address
+                    </label>
+                    <input 
+                      type="email"
+                      className="form-control form-control-lg" 
+                      placeholder="example@email.com" 
+                      value={form.email}
+                      onChange={e => setForm({...form, email:e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-telephone me-2"></i>Phone Number
+                    </label>
+                    <input 
+                      className="form-control form-control-lg" 
+                      placeholder="+1 (555) 000-0000" 
+                      value={form.phoneNumber}
+                      onChange={e => setForm({...form, phoneNumber:e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-geo-alt me-2"></i>Address
+                    </label>
+                    <input 
+                      className="form-control form-control-lg" 
+                      placeholder="Street, City, Zip" 
+                      value={form.address}
+                      onChange={e => setForm({...form, address:e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-12">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-tools me-2"></i>Service Category
+                    </label>
+                    <select 
+                      className="form-select form-select-lg"
+                      value={form.serviceType}
+                      onChange={e => setForm({...form, serviceType:e.target.value})}
+                    >
+                      <option value="">Choose a service category</option>
+                      <option value="electrical">⚡ Electrical Solutions</option>
+                      <option value="plumbing">🚰 Professional Plumbing</option>
+                      <option value="maintenance">🛠️ General Maintenance</option>
+                      <option value="consultation">📋 Expert Consultation</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="col-md-12">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-chat-dots me-2"></i>How can we help?
+                    </label>
+                    <textarea 
+                      className="form-control form-control-lg" 
+                      rows="4"
+                      placeholder="Briefly describe your requirements..." 
+                      value={form.message}
+                      onChange={e => setForm({...form, message:e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-12">
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">
+                      <i className="bi bi-image me-2"></i>Upload Reference Image
+                    </label>
+                    <div className="upload-container">
+                      <input
+                        type="file"
+                        id="file-upload"
+                        className="file-input-hidden"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                      />
+                      <label htmlFor="file-upload" className="file-upload-label">
+                        <i className="bi bi-cloud-arrow-up fs-2 mb-2"></i>
+                        <span>{imageFile ? imageFile.name : "Click to browse or drag & drop"}</span>
+                        <small className="text-muted mt-1">Supports: JPG, PNG, GIF</small>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-12 text-center mt-5">
+                  <button className="btn btn-primary btn-lg px-5 py-3 shadow-lg w-100 w-md-auto" onClick={submit}>
+                    <i className="bi bi-send-fill me-2"></i>Submit Service Request
+                  </button>
+                  <p className="mt-4 text-muted small">
+                    <i className="bi bi-shield-lock me-1"></i> Your information is safe and secure.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

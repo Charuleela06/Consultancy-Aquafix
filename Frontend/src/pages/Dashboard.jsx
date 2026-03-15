@@ -1,93 +1,227 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import API from "../api/api";
 import "../styles/Dashboard.css";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   const [statsData, setStatsData] = useState({
+    totalServiceRequests: 0,
+    completedRequests: 0,
+    totalRevenue: 0,
+    staffSalaryExpenses: 0,
+    governmentProjectBudgets: 0,
+    pendingPayments: 0,
     totalProjects: 0,
     pendingRequests: 0,
     govtProjects: 0,
     activeTasks: 0
   });
-  const [recentRequests, setRecentRequests] = useState([]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [serviceTrends, setServiceTrends] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get("/stats")
-      .then(res => setStatsData(res.data))
-      .catch(err => console.log(err));
+    const fetchData = async () => {
+      try {
+        // Fetch stats
+        const statsRes = await API.get("/stats");
+        setStatsData(statsRes.data);
 
-    API.get("/requests")
-      .then(res => setRecentRequests(res.data.slice(0, 3)))
-      .catch(err => console.log(err));
+        // Fetch revenue analytics for charts
+        const analyticsRes = await API.get("/analytics/revenue");
+        const monthlyData = analyticsRes.data.monthly.map(item => ({
+          month: item.period,
+          revenue: item.revenue
+        }));
+        setMonthlyRevenue(monthlyData);
+
+        // Service request trends (mock data for now, can be enhanced)
+        const trends = [
+          { month: 'Jan', requests: 12 },
+          { month: 'Feb', requests: 19 },
+          { month: 'Mar', requests: 15 },
+          { month: 'Apr', requests: 25 },
+          { month: 'May', requests: 22 },
+          { month: 'Jun', requests: 30 }
+        ];
+        setServiceTrends(trends);
+
+        setLoading(false);
+      } catch (err) {
+        console.log(err);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const stats = [
-    { title: "Total Projects", value: statsData.totalProjects, icon: "bi-briefcase", color: "primary" },
-    { title: "Pending Requests", value: statsData.pendingRequests, icon: "bi-clock", color: "warning" },
-    { title: "Govt Projects", value: statsData.govtProjects, icon: "bi-bank", color: "success" },
-    { title: "Active Tasks", value: statsData.activeTasks, icon: "bi-list-check", color: "info" }
+    { title: "Total Service Requests", value: statsData.totalServiceRequests, icon: "bi-clipboard-check", color: "primary" },
+    { title: "Completed Requests", value: statsData.completedRequests, icon: "bi-check-circle", color: "success" },
+    { title: "Total Revenue", value: `₹${statsData.totalRevenue.toLocaleString()}`, icon: "bi-cash", color: "info" },
+    { title: "Staff Salary Expenses", value: `₹${statsData.staffSalaryExpenses.toLocaleString()}`, icon: "bi-wallet", color: "warning" },
+    { title: "Govt Project Budgets", value: `₹${statsData.governmentProjectBudgets.toLocaleString()}`, icon: "bi-bank", color: "secondary" },
+    { title: "Pending Payments", value: statsData.pendingPayments, icon: "bi-clock", color: "danger" }
   ];
 
+  const COLORS = ['#007bff', '#28a745', '#17a2b8', '#ffc107', '#6c757d', '#dc3545'];
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container">
+    <div className="dashboard-container">
       <div className="row mb-4">
         <div className="col">
-          <h1 className="display-5 fw-bold">Contractor Dashboard</h1>
-          <p className="text-muted fs-5">Welcome back! Here's a quick overview of your business.</p>
+          <h1 className="dashboard-title">Admin Dashboard</h1>
+          <p className="dashboard-subtitle">Welcome back! Here's an overview of your business performance.</p>
         </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="row mb-5">
         {stats.map((stat, idx) => (
-          <div key={idx} className="col-md-3 mb-3">
-            <div className={`card bg-${stat.color} text-white h-100 border-0 shadow`}>
-              <div className="card-body d-flex flex-column justify-content-between">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="card-title text-uppercase mb-0 opacity-75 fw-bold">{stat.title}</h6>
-                  <i className={`bi ${stat.icon} fs-3`}></i>
+          <div key={idx} className="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-3">
+            <div className={`stats-card bg-${stat.color} text-white h-100`}>
+              <div className="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                <div className="d-flex justify-content-center align-items-center mb-2">
+                  <i className={`bi ${stat.icon} fs-4`}></i>
                 </div>
-                <h2 className="display-6 fw-bold mb-0">{stat.value}</h2>
+                <div>
+                  <h3 className="card-value mb-1">{stat.value}</h3>
+                  <p className="card-title mb-0 small opacity-75">{stat.title}</p>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="row">
-        <div className="col-lg-8">
-          <div className="card p-4 mb-4 border-0 shadow-sm">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h3 className="mb-0">Recent Activity</h3>
-              <button className="btn btn-sm btn-link text-decoration-none" onClick={() => window.location.href='/projects'}>View All</button>
+      {/* Charts Row */}
+      <div className="row mb-5">
+        <div className="col-lg-8 mb-4">
+          <div className="chart-card">
+            <div className="card-header">
+              <h5 className="mb-0">Monthly Revenue</h5>
             </div>
-            <ul className="list-group list-group-flush">
-              {recentRequests.map(req => (
-                <li key={req._id} className="list-group-item px-0 py-3 d-flex align-items-center border-0 border-bottom">
-                  <div className="bg-primary-subtle text-primary rounded-circle p-2 me-3">
-                    <i className="bi bi-person-plus"></i>
-                  </div>
-                  <div>
-                    <div className="fw-bold">{req.name} requested {req.serviceType}</div>
-                    <small className="text-muted">{new Date(req.createdAt).toLocaleDateString()} • {req.status}</small>
-                  </div>
-                </li>
-              ))}
-              {recentRequests.length === 0 && (
-                <li className="list-group-item px-0 py-3 text-muted">No recent activity</li>
-              )}
-            </ul>
+            <div className="card-body">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyRevenue}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [`₹${value}`, 'Revenue']} />
+                  <Line type="monotone" dataKey="revenue" stroke="#007bff" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
-        <div className="col-lg-4">
-          <div className="card p-4 bg-dark text-white mb-4 border-0 shadow-sm">
-            <h4 className="mb-3">Quick Actions</h4>
-            <div className="d-grid gap-3 mt-2">
-              <button className="btn btn-primary d-flex align-items-center justify-content-center gap-2" onClick={() => window.location.href='/projects'}>
-                <i className="bi bi-eye"></i> View All Requests
-              </button>
-              <button className="btn btn-outline-light d-flex align-items-center justify-content-center gap-2" onClick={() => window.location.href='/government'}>
-                <i className="bi bi-bank"></i> Govt Projects
-              </button>
+
+        <div className="col-lg-4 mb-4">
+          <div className="chart-card">
+            <div className="card-header">
+              <h5 className="mb-0">Service Request Trends</h5>
+            </div>
+            <div className="card-body">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={serviceTrends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="requests" fill="#28a745" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Charts */}
+      <div className="row">
+        <div className="col-lg-6 mb-4">
+          <div className="chart-card">
+            <div className="card-header">
+              <h5 className="mb-0">Revenue Breakdown</h5>
+            </div>
+            <div className="card-body">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Service Revenue', value: statsData.totalRevenue },
+                      { name: 'Expenses', value: statsData.staffSalaryExpenses }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {[
+                      { name: 'Service Revenue', value: statsData.totalRevenue },
+                      { name: 'Expenses', value: statsData.staffSalaryExpenses }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `₹${value}`} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-6 mb-4">
+          <div className="chart-card">
+            <div className="card-header">
+              <h5 className="mb-0">Quick Actions</h5>
+            </div>
+            <div className="card-body">
+              <div className="d-grid gap-3">
+                <button
+                  type="button"
+                  className="btn btn-primary d-flex align-items-center justify-content-center gap-2 quick-action-btn"
+                  onClick={() => navigate('/projects')}
+                >
+                  <i className="bi bi-eye"></i> View All Service Requests
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success d-flex align-items-center justify-content-center gap-2 quick-action-btn"
+                  onClick={() => navigate('/staff-management')}
+                >
+                  <i className="bi bi-people"></i> Manage Staff
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-info text-white d-flex align-items-center justify-content-center gap-2 quick-action-btn"
+                  onClick={() => navigate('/government')}
+                >
+                  <i className="bi bi-bank"></i> Government Projects
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-warning d-flex align-items-center justify-content-center gap-2 quick-action-btn"
+                  onClick={() => navigate('/revenue-analytics')}
+                >
+                  <i className="bi bi-graph-up"></i> Revenue Analytics
+                </button>
+              </div>
             </div>
           </div>
         </div>
