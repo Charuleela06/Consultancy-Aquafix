@@ -29,7 +29,7 @@ export default function Footer() {
               ) : (
                 <>
                   <li className="mb-2"><Link to="/" className="text-decoration-none text-muted footer-link">Home</Link></li>
-                  <li className="mb-2"><Link to="/request" className="text-decoration-none text-muted footer-link">Service Request</Link></li>
+                  <li className="mb-2"><Link to="/request" className="text-decoration-none text-muted footer-link">Fix Flow</Link></li>
                 </>
               )}
             </ul>
@@ -51,7 +51,7 @@ export default function Footer() {
               </p>
               <p className="text-muted small mb-3">
                 <i className="bi bi-telephone me-2 text-primary"></i>
-                +1 (555) 123-4567
+                +91 9876543210
               </p>
               <div className="d-flex justify-content-lg-end gap-3 mt-4">
                 <a href="#" className="text-muted social-icon"><i className="bi bi-facebook"></i></a>

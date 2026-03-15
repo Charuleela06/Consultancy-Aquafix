@@ -64,7 +64,7 @@ export default function PaymentComplete() {
                     <i className={`bi ${status === "success" ? "bi-check2-circle" : status === "cancel" ? "bi-x-circle" : status === "error" ? "bi-exclamation-triangle" : "bi-credit-card"} fs-3`}></i>
                   </div>
                   <div>
-                    <div className="fw-bold fs-4">Payment</div>
+                    <div className="fw-bold fs-4">Billing Hub</div>
                     <div className="small opacity-75">Secure checkout result</div>
                   </div>
                 </div>

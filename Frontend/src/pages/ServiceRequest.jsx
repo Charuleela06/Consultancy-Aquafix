@@ -46,8 +46,8 @@ export default function ServiceRequest() {
             </div>
           )}
           <div className="card shadow-lg p-5 mb-5 border-0">
-            <h2 className="text-center mb-4 fw-bold">Service Request Form</h2>
-            <p className="text-center text-muted mb-5">Fill out the form below and we'll get back to you as soon as possible.</p>
+            <h2 className="text-center mb-4 fw-bold">Need Help? We are Here For You</h2>
+            <p className="text-center text-muted mb-5">Provide the required details and our team will reach out soon to assist you.</p>
             
             <div className="row g-4">
               <div className="col-md-6">

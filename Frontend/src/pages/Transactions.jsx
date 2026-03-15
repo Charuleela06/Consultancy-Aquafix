@@ -100,8 +100,8 @@ export default function Transactions() {
 
       <div className="row mb-4">
         <div className="col">
-          <h1 className="transactions-title">Transactions & Payments</h1>
-          <p className="transactions-subtitle">Track all your service payments and billing history.</p>
+          <h1 className="transactions-title">Billing Hub</h1>
+          <p className="transactions-subtitle">Stay updated with your payment records and billing details..</p>
         </div>
       </div>
 

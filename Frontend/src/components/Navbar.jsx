@@ -55,13 +55,13 @@ export default function Navbar() {
                       <NavLink className="nav-link mx-1" to="/" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Home</NavLink>
                     </li>
                     <li className="nav-item">
-                      <NavLink className="nav-link mx-1" to="/request" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Service Request</NavLink>
+                      <NavLink className="nav-link mx-1" to="/request" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>FixFlow</NavLink>
                     </li>
                     <li className="nav-item">
-                      <NavLink className="nav-link mx-1" to="/my-requests" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>My Requests</NavLink>
+                      <NavLink className="nav-link mx-1" to="/my-requests" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>FixTrack</NavLink>
                     </li>
                     <li className="nav-item">
-                      <NavLink className="nav-link mx-1" to="/transactions" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Transactions</NavLink>
+                      <NavLink className="nav-link mx-1" to="/transactions" style={({ isActive }) => ({ fontWeight: isActive ? "bold" : "normal" })}>Billing Center</NavLink>
                     </li>
                   </>
                 )}
