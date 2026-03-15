@@ -14,6 +14,10 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
+
+app.get("/", (req, res) => {
+  res.send("Consultancy Aquafix API is running");
+});
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/projects", require("./routes/projectRoutes"));
 app.use("/api/requests", require("./routes/serviceRequestRoutes"));
