@@ -4,33 +4,44 @@ import { generateServiceBillPDF } from "../utils/pdfGenerator";
 import "../styles/ServiceRequest.css";
 
 export default function ServiceRequest() {
-  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", address: "", serviceType: "", message: "" });
-  const [imageFile, setImageFile] = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "", serviceType: "", message: "" });
+  const [requests, setRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await API.get("/requests");
+      setRequests(res.data);
+    } catch (err) {
+      console.error("Error fetching requests", err);
+      setError(err.response?.data?.message || "Failed to load requests. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = (request) => {
+    setSelectedRequest(request);
+    setShowModal(true);
+  };
 
   const submit = async () => {
-    if (!form.name || !form.email || !form.phoneNumber || !form.address || !form.serviceType) return alert("Please fill all required fields");
+    if (!form.name || !form.email || !form.phoneNumber || !form.serviceType) return alert("Please fill all required fields");
     try {
-      const data = new FormData();
-      data.append("name", form.name);
-      data.append("email", form.email);
-      data.append("phoneNumber", form.phoneNumber);
-      data.append("address", form.address);
-      data.append("serviceType", form.serviceType);
-      data.append("message", form.message);
-      if (imageFile) {
-        data.append("image", imageFile);
-      }
-
-      await API.post("/requests", data, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      await API.post("/requests", form);
       alert("Request submitted successfully!");
-      setForm({ name: "", email: "", phoneNumber: "", address: "", serviceType: "", message: "" });
-      setImageFile(null);
+      setForm({ name: "", email: "", phoneNumber: "", serviceType: "", message: "" });
       setError(null);
+      fetchRequests();
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.response?.data?.message || "Submission failed";
       alert("Submission failed: " + errorMsg);
@@ -39,149 +50,216 @@ export default function ServiceRequest() {
   };
 
   return (
-    <div className="service-request-container py-5">
-      <div className="app-blob blue" style={{ top: "-100px", left: "-100px", opacity: 0.3 }}></div>
-      <div className="app-blob pink" style={{ bottom: "-100px", right: "-100px", opacity: 0.2 }}></div>
-      
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-lg-10 col-xl-8">
-            <div className="text-center mb-5 app-slide-up">
-              <h1 className="display-4 fw-bold mb-3">Service Request</h1>
-              <p className="lead text-muted mx-auto" style={{ maxWidth: '600px' }}>
-                Need professional help? Fill out the details below and our expert team will get in touch with you shortly.
-              </p>
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-md-10">
+          {error && (
+            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+              <button type="button" className="btn-close" onClick={() => setError(null)}></button>
             </div>
-
-            {error && (
-              <div className="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-                <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                {error}
-                <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+          )}
+          <div className="card shadow-lg p-5 mb-5 border-0">
+            <h2 className="text-center mb-4 fw-bold">Service Request Form</h2>
+            <p className="text-center text-muted mb-5">Fill out the form below and we'll get back to you as soon as possible.</p>
+            
+            <div className="row g-4">
+              <div className="col-md-6">
+                <label className="form-label fw-bold">Full Name</label>
+                <input 
+                  className="form-control" 
+                  placeholder="John Doe" 
+                  value={form.name}
+                  onChange={e => setForm({...form, name:e.target.value})}
+                />
               </div>
-            )}
+              <div className="col-md-6">
+                <label className="form-label fw-bold">Email Address</label>
+                <input 
+                  type="email"
+                  className="form-control" 
+                  placeholder="john@example.com" 
+                  value={form.email}
+                  onChange={e => setForm({...form, email:e.target.value})}
+                />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label fw-bold">Phone Number</label>
+                <input 
+                  className="form-control" 
+                  placeholder="+1 (555) 000-0000" 
+                  value={form.phoneNumber}
+                  onChange={e => setForm({...form, phoneNumber:e.target.value})}
+                />
+              </div>
+              <div className="col-md-12">
+                <label className="form-label fw-bold">Service Type</label>
+                <select 
+                  className="form-select"
+                  value={form.serviceType}
+                  onChange={e => setForm({...form, serviceType:e.target.value})}
+                >
+                  <option value="">Select a service...</option>
+                  <option value="electrical">Electrical Work</option>
+                  <option value="plumbing">Plumbing Work</option>
+                  <option value="maintenance">General Maintenance</option>
+                  <option value="consultation">Project Consultation</option>
+                </select>
+              </div>
+              <div className="col-md-12">
+                <label className="form-label fw-bold">Detailed Message</label>
+                <textarea 
+                  className="form-control" 
+                  rows="4"
+                  placeholder="Tell us more about your requirements..." 
+                  value={form.message}
+                  onChange={e => setForm({...form, message:e.target.value})}
+                />
+              </div>
+              <div className="col-md-12 text-center mt-4">
+                <button className="btn btn-primary btn-lg px-5 shadow" onClick={submit}>Submit Request</button>
+              </div>
+            </div>
+          </div>
 
-            <div className="form-card app-pop">
-              <div className="row g-4">
-                <div className="col-md-6">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-person me-2"></i>Full Name
-                    </label>
-                    <input 
-                      className="form-control form-control-lg" 
-                      placeholder="Enter your full name" 
-                      value={form.name}
-                      onChange={e => setForm({...form, name:e.target.value})}
-                    />
+          <div className="card shadow-sm p-4 border-0">
+            <h3 className="mb-4 fw-bold">Your Requests</h3>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead className="table-light">
+                  <tr>
+                    <th>Service</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Assigned Staff</th>
+                    <th>Bill Amount</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.map(r => (
+                    <tr key={r._id}>
+                      <td className="text-capitalize fw-bold">{r.serviceType}</td>
+                      <td>{r.phoneNumber}</td>
+                      <td><span className={`badge ${r.status === 'Pending' ? 'bg-warning' : r.status === 'Completed' ? 'bg-success' : 'bg-primary'}`}>{r.status}</span></td>
+                      <td>{r.assignedStaff ? r.assignedStaff.name : 'Not Assigned'}</td>
+                      <td>
+                        {r.billAmount > 0 ? (
+                          <span className="fw-bold text-success">₹{r.billAmount.toLocaleString()}</span>
+                        ) : (
+                          <span className="text-muted small">Pending Approval</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="btn-group">
+                          <button 
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleViewDetails(r)}
+                          >
+                            View Details
+                          </button>
+                          {r.billAmount > 0 && (
+                            <button 
+                              className="btn btn-sm btn-outline-dark"
+                              onClick={() => generateServiceBillPDF(r)}
+                              title="Download Bill"
+                            >
+                              <i className="bi bi-download"></i>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {requests.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="text-center text-muted py-4">No requests found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Details Modal */}
+      {showModal && selectedRequest && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">Request Details</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body p-4">
+                <div className="mb-3">
+                  <label className="text-muted small d-block">Request Name</label>
+                  <span className="fw-bold fs-5 text-capitalize">{selectedRequest.serviceType} Request</span>
+                </div>
+                <div className="row mb-3">
+                  <div className="col-6">
+                    <label className="text-muted small d-block">Client Name</label>
+                    <span className="fw-bold">{selectedRequest.name}</span>
+                  </div>
+                  <div className="col-6">
+                    <label className="text-muted small d-block">Date Submitted</label>
+                    <span className="fw-bold">{new Date(selectedRequest.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="col-md-6">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-envelope me-2"></i>Email Address
-                    </label>
-                    <input 
-                      type="email"
-                      className="form-control form-control-lg" 
-                      placeholder="example@email.com" 
-                      value={form.email}
-                      onChange={e => setForm({...form, email:e.target.value})}
-                    />
+                <div className="mb-3">
+                  <label className="text-muted small d-block">Message/Requirements</label>
+                  <p className="bg-light p-3 rounded mb-0">{selectedRequest.message || 'No specific requirements mentioned.'}</p>
+                </div>
+                <hr />
+                <div className="row mb-3">
+                  <div className="col-6">
+                    <label className="text-muted small d-block">Assigned Staff</label>
+                    <span className={`fw-bold ${selectedRequest.assignedStaff ? 'text-dark' : 'text-danger'}`}>
+                      {selectedRequest.assignedStaff ? selectedRequest.assignedStaff.name : 'Not Assigned'}
+                    </span>
+                  </div>
+                  <div className="col-6">
+                    <label className="text-muted small d-block">Staff Contact</label>
+                    <span className="fw-bold">{selectedRequest.assignedStaff?.phoneNumber || 'N/A'}</span>
                   </div>
                 </div>
-                <div className="col-md-6">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-telephone me-2"></i>Phone Number
-                    </label>
-                    <input 
-                      className="form-control form-control-lg" 
-                      placeholder="+1 (555) 000-0000" 
-                      value={form.phoneNumber}
-                      onChange={e => setForm({...form, phoneNumber:e.target.value})}
-                    />
+                <div className="row">
+                  <div className="col-6">
+                    <label className="text-muted small d-block">Bill Amount</label>
+                    <span className="fw-bold text-success fs-5">
+                      {selectedRequest.billAmount > 0 ? `₹${selectedRequest.billAmount.toLocaleString()}` : 'Awaiting Quote'}
+                    </span>
+                  </div>
+                  <div className="col-6">
+                    <label className="text-muted small d-block">Payment Status</label>
+                    <span className={`badge ${selectedRequest.paymentStatus === 'Paid' ? 'bg-success' : 'bg-warning'}`}>
+                      {selectedRequest.paymentStatus}
+                    </span>
                   </div>
                 </div>
-                <div className="col-md-6">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-geo-alt me-2"></i>Address
-                    </label>
-                    <input 
-                      className="form-control form-control-lg" 
-                      placeholder="Street, City, Zip" 
-                      value={form.address}
-                      onChange={e => setForm({...form, address:e.target.value})}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-12">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-tools me-2"></i>Service Category
-                    </label>
-                    <select 
-                      className="form-select form-select-lg"
-                      value={form.serviceType}
-                      onChange={e => setForm({...form, serviceType:e.target.value})}
-                    >
-                      <option value="">Choose a service category</option>
-                      <option value="electrical">⚡ Electrical Solutions</option>
-                      <option value="plumbing">🚰 Professional Plumbing</option>
-                      <option value="maintenance">🛠️ General Maintenance</option>
-                      <option value="consultation">📋 Expert Consultation</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="col-md-12">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-chat-dots me-2"></i>How can we help?
-                    </label>
-                    <textarea 
-                      className="form-control form-control-lg" 
-                      rows="4"
-                      placeholder="Briefly describe your requirements..." 
-                      value={form.message}
-                      onChange={e => setForm({...form, message:e.target.value})}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-12">
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">
-                      <i className="bi bi-image me-2"></i>Upload Reference Image
-                    </label>
-                    <div className="upload-container">
-                      <input
-                        type="file"
-                        id="file-upload"
-                        className="file-input-hidden"
-                        accept="image/*"
-                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                      />
-                      <label htmlFor="file-upload" className="file-upload-label">
-                        <i className="bi bi-cloud-arrow-up fs-2 mb-2"></i>
-                        <span>{imageFile ? imageFile.name : "Click to browse or drag & drop"}</span>
-                        <small className="text-muted mt-1">Supports: JPG, PNG, GIF</small>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-12 text-center mt-5">
-                  <button className="btn btn-primary btn-lg px-5 py-3 shadow-lg w-100 w-md-auto" onClick={submit}>
-                    <i className="bi bi-send-fill me-2"></i>Submit Service Request
+              </div>
+              <div className="modal-footer border-0">
+                <button type="button" className="btn btn-secondary px-4" onClick={() => setShowModal(false)}>Close</button>
+                {selectedRequest.billAmount > 0 && (
+                  <button type="button" className="btn btn-primary px-4" onClick={() => generateServiceBillPDF(selectedRequest)}>
+                    Download Bill
                   </button>
-                  <p className="mt-4 text-muted small">
-                    <i className="bi bi-shield-lock me-1"></i> Your information is safe and secure.
-                  </p>
-                </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
