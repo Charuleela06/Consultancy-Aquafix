@@ -42,7 +42,10 @@ exports.createCheckoutSession = async (req, res) => {
 
     const stripe = getStripe();
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173");
+    if (!frontendUrl) {
+      return res.status(500).json({ message: "Server misconfigured: FRONTEND_URL is not set" });
+    }
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],

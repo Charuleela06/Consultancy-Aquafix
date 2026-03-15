@@ -9,6 +9,14 @@ export default function PaymentComplete() {
   const [message, setMessage] = useState("Checking payment...");
 
   useEffect(() => {
+    if (status !== "success" && status !== "cancel") return;
+    const id = setTimeout(() => {
+      navigate("/transactions", { replace: true });
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [status, navigate]);
+
+  useEffect(() => {
     const run = async () => {
       const params = new URLSearchParams(location.search);
       const result = params.get("status");
