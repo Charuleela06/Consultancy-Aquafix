@@ -73,7 +73,7 @@ export default function MyRequests() {
       <div className="card shadow-sm p-4 border-0">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h3 className="mb-1 fw-bold">Operations Hu</h3>
+            <h3 className="mb-1 fw-bold">Operations Hub</h3>
             <div className="text-muted small"> Access and manage all your maintenance requests here</div>
           </div>
           <button className="btn btn-outline-primary btn-sm" onClick={fetchRequests}>
