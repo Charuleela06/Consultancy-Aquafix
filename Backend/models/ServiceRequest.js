@@ -13,6 +13,7 @@ const ServiceRequestSchema = new mongoose.Schema({
     filename: String
   },
   status: { type: String, default: "Pending" },
+  completedAt: { type: Date, default: null },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   billAmount: { type: Number, default: 0 },

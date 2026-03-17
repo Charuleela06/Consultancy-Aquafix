@@ -62,6 +62,9 @@ export default function Dashboard() {
   const stats = [
     { title: "Total Service Requests", value: statsData.totalServiceRequests, icon: "bi-clipboard-check", color: "primary" },
     { title: "Completed Requests", value: statsData.completedRequests, icon: "bi-check-circle", color: "success" },
+    { title: "Today's Requests", value: statsData.todayTotalRequests || 0, icon: "bi-calendar-event", color: "secondary" },
+    { title: "Completed Today", value: statsData.todayCompletedRequests || 0, icon: "bi-calendar-check", color: "success" },
+    { title: "Remaining Today", value: statsData.todayRemainingRequests || 0, icon: "bi-calendar-x", color: "warning" },
     { title: "Total Revenue", value: `₹${statsData.totalRevenue.toLocaleString()}`, icon: "bi-cash", color: "info" },
     { title: "Staff Salary Expenses", value: `₹${statsData.staffSalaryExpenses.toLocaleString()}`, icon: "bi-wallet", color: "warning" },
     { title: "Govt Project Budgets", value: `₹${statsData.governmentProjectBudgets.toLocaleString()}`, icon: "bi-bank", color: "secondary" },

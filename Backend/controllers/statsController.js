@@ -6,9 +6,29 @@ const User = require("../models/User");
 
 exports.getStats = async (req, res) => {
   try {
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
     const totalServiceRequests = await ServiceRequest.countDocuments();
     const completedRequests = await ServiceRequest.countDocuments({ status: "Completed" });
     const pendingRequests = await ServiceRequest.countDocuments({ status: "Pending" });
+
+    const todayTotalRequests = await ServiceRequest.countDocuments({
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    const todayCompletedRequests = await ServiceRequest.countDocuments({
+      status: "Completed",
+      completedAt: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    const todayRemainingRequests = await ServiceRequest.countDocuments({
+      status: { $ne: "Completed" },
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
 
     // Revenue from completed service requests
     const revenueResult = await ServiceRequest.aggregate([
@@ -41,6 +61,9 @@ exports.getStats = async (req, res) => {
     res.json({
       totalServiceRequests,
       completedRequests,
+      todayTotalRequests,
+      todayCompletedRequests,
+      todayRemainingRequests,
       totalRevenue,
       staffSalaryExpenses,
       governmentProjectBudgets,

@@ -46,9 +46,16 @@ exports.updateStatus = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
     const { requestId, status } = req.body;
+    const update = { status };
+    if (status === "Completed") {
+      update.completedAt = new Date();
+    } else {
+      update.completedAt = null;
+    }
+
     const request = await ServiceRequest.findByIdAndUpdate(
       requestId,
-      { status },
+      update,
       { new: true }
     ).populate("assignedStaff", "name phoneNumber");
     res.json(request);
