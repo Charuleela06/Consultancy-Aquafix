@@ -9,6 +9,7 @@ export default function Projects() {
   const [staffList, setStaffList] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedRequestImageUrl, setSelectedRequestImageUrl] = useState(null);
   const [savingBill, setSavingBill] = useState(false);
   const [showBilling, setShowBilling] = useState(false);
   const [bills, setBills] = useState([]);
@@ -124,6 +125,37 @@ export default function Projects() {
     setSelectedRequest(request);
     setShowModal(true);
   };
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchImage = async () => {
+      if (!showModal || !selectedRequest?._id) return;
+      if (!selectedRequest?.image?.filename) {
+        if (active) setSelectedRequestImageUrl(null);
+        return;
+      }
+
+      try {
+        const res = await API.get(`/requests/${selectedRequest._id}/image`, {
+          responseType: "blob"
+        });
+        const url = URL.createObjectURL(res.data);
+        if (active) setSelectedRequestImageUrl(url);
+      } catch (e) {
+        if (active) setSelectedRequestImageUrl(null);
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      active = false;
+      if (selectedRequestImageUrl) {
+        URL.revokeObjectURL(selectedRequestImageUrl);
+      }
+    };
+  }, [showModal, selectedRequest]);
 
   const fetchBills = async (requestId) => {
     try {
@@ -495,10 +527,10 @@ export default function Projects() {
                       <p className="customer-email">{r.email}</p>
                     </div>
 
-                    {r.image && r.image.data && (
+                    {r.image?.filename && (
                       <div className="image-preview mb-3">
                         <img
-                          src={`data:${r.image.contentType};base64,${r.image.data}`}
+                          src={`/api/requests/${r._id}/image`}
                           alt="Request"
                           className="img-fluid rounded"
                         />
@@ -565,6 +597,16 @@ export default function Projects() {
               </div>
               <div className="modal-body p-4">
                 <div className="row g-4">
+                  {selectedRequestImageUrl && (
+                    <div className="col-12">
+                      <p className="mb-1 text-muted small text-uppercase fw-bold">Uploaded Image</p>
+                      <img
+                        src={selectedRequestImageUrl}
+                        alt="Request"
+                        className="img-fluid rounded border"
+                      />
+                    </div>
+                  )}
                   <div className="col-md-6">
                     <p className="mb-1 text-muted small text-uppercase fw-bold">Customer Name</p>
                     <p className="fs-5">{selectedRequest.name}</p>
