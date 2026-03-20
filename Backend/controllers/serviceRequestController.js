@@ -29,6 +29,26 @@ exports.getRequests = async (req, res) => {
     let query = {};
     if (req.user.role !== 'admin') {
       query.userId = req.user.id;
+    } else {
+      const { date, view } = req.query;
+
+      if (date) {
+        const start = new Date(`${date}T00:00:00.000Z`);
+        const end = new Date(`${date}T23:59:59.999Z`);
+
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+          return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+        }
+
+        if (view === "completed") {
+          query.completedAt = { $gte: start, $lte: end };
+        } else if (view === "pending") {
+          query.createdAt = { $gte: start, $lte: end };
+          query.status = { $ne: "Completed" };
+        } else {
+          query.createdAt = { $gte: start, $lte: end };
+        }
+      }
     }
     const requests = await ServiceRequest.find(query)
       .select("-image.data")

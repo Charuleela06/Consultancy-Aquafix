@@ -17,6 +17,9 @@ export default function Projects() {
   const [editingBill, setEditingBill] = useState(null);
   const [downloadingBill, setDownloadingBill] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
+  const [dayFilterEnabled, setDayFilterEnabled] = useState(false);
+  const [dayFilterDate, setDayFilterDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [dayFilterView, setDayFilterView] = useState("all");
   const [loading, setLoading] = useState(true);
   const [billForm, setBillForm] = useState({
     invoiceNo: "",
@@ -49,10 +52,19 @@ export default function Projects() {
     filterRequests();
   }, [requests, statusFilter]);
 
+  useEffect(() => {
+    fetchRequests();
+  }, [dayFilterEnabled, dayFilterDate, dayFilterView]);
+
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await API.get("/requests");
+      const params = {};
+      if (dayFilterEnabled && dayFilterDate) {
+        params.date = dayFilterDate;
+        params.view = dayFilterView;
+      }
+      const res = await API.get("/requests", { params });
       setRequests(res.data);
     } catch (err) {
       console.log(err);
@@ -497,6 +509,46 @@ export default function Projects() {
             <span className="badge bg-warning me-2">Pending: {requests.filter(r => r.status === 'Pending').length}</span>
             <span className="badge bg-primary me-2">In Progress: {requests.filter(r => r.status === 'In Progress').length}</span>
             <span className="badge bg-success">Completed: {requests.filter(r => r.status === 'Completed').length}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="row mb-4">
+        <div className="col">
+          <div className="filter-section">
+            <label className="form-label fw-bold">Daily Work:</label>
+            <div className="d-flex gap-2 flex-wrap align-items-center">
+              <button
+                className={`btn btn-sm ${dayFilterEnabled ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setDayFilterEnabled((v) => !v)}
+              >
+                {dayFilterEnabled ? 'Daily Filter: ON' : 'Daily Filter: OFF'}
+              </button>
+
+              <input
+                type="date"
+                className="form-control form-control-sm"
+                style={{ maxWidth: 180 }}
+                value={dayFilterDate}
+                onChange={(e) => setDayFilterDate(e.target.value)}
+                disabled={!dayFilterEnabled}
+              />
+
+              {[
+                { key: 'all', label: 'All (Created This Day)' },
+                { key: 'pending', label: 'Pending This Day' },
+                { key: 'completed', label: 'Completed This Day' }
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  className={`btn btn-sm ${dayFilterView === opt.key ? 'btn-dark' : 'btn-outline-dark'}`}
+                  onClick={() => setDayFilterView(opt.key)}
+                  disabled={!dayFilterEnabled}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
